@@ -83,7 +83,7 @@ for g in range(1, num_groups_cda + 1):
     name = 'group' + str(g)
     group_mkt = []
     for r in range(1, num_rounds - prac_rounds + 1): 
-        path = directory + 'flow production/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+        path = directory + 'Flow_Market_Data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
         rnd = pd.read_json(
             path,
         )
@@ -111,7 +111,7 @@ for g in range(1, num_groups_cda + 1):
 
         visited = set()
         
-        path = directory + 'flow production/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
+        path = directory + 'Flow_Market_Data/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
         rnd = pd.read_json(
             path,
         )
@@ -619,7 +619,7 @@ sorted_excess_profit_sell_cda_ind_full = np.sort(excess_profits_sell_cda_ind_ful
 cumulative_prob_excess_profit_cda_ind_full = np.arange(1, len(sorted_excess_profit_cda_ind_full) + 1) / len(sorted_excess_profit_cda_ind_full)
 cumulative_prob_excess_profit_buy_cda_ind_full = np.arange(1, len(sorted_excess_profit_buy_cda_ind_full) + 1) / len(sorted_excess_profit_buy_cda_ind_full)
 cumulative_prob_excess_profit_sell_cda_ind_full = np.arange(1, len(sorted_excess_profit_sell_cda_ind_full) + 1) / len(sorted_excess_profit_sell_cda_ind_full)
-plt.figure(figsize=(15, 10))
+plt.figure(figsize=(8, 5))
 plt.step(sorted_excess_profit_cda_ind_full, cumulative_prob_excess_profit_cda_ind_full, label='CDF', where='post')
 plt.step(sorted_excess_profit_buy_cda_ind_full, cumulative_prob_excess_profit_buy_cda_ind_full, label='buyers', where='post')
 plt.step(sorted_excess_profit_sell_cda_ind_full, cumulative_prob_excess_profit_sell_cda_ind_full, label='sellers', where='post')

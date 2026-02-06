@@ -12,7 +12,7 @@ from sys import exit
 # input session constants 
 from config import *
 
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/'
+directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/'
 
 # Replace NaN by empty dict
 def replace_nans_with_dict(series):

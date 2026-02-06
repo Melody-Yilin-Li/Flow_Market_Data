@@ -10,7 +10,7 @@ import faulthandler; faulthandler.enable()
 from functools import reduce                # Import reduce function
 from sys import exit
 
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/data/'
+directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
 
 # Replace NaN by empty dict
 def replace_nans_with_dict(series):
@@ -262,7 +262,7 @@ for g in range(1, num_groups_cda + 1):
     market = {}
     for r in range(1, num_rounds - prac_rounds + 1):
         name = 'mkt' + str(r)
-        # path = '/Users/YilinLi/Downloads/flow production/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+        # path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
         # market[name] = pd.read_json(
         #     path,
         #     )

@@ -13,9 +13,9 @@ from sys import exit
 from config import *
 
 if high_flow_max_rate:
-    directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/flow high max rate/'
+    directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/flow high max rate/'
 else:
-    directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/flow low max rate/'
+    directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/flow low max rate/'
 
 
 # Replace NaN by empty dict
@@ -626,7 +626,7 @@ sorted_excess_profit_sell_flow_ind_full = np.sort(excess_profits_sell_flow_ind_f
 cumulative_prob_excess_profit_flow_ind_full = np.arange(1, len(sorted_excess_profit_flow_ind_full) + 1) / len(sorted_excess_profit_flow_ind_full)
 cumulative_prob_excess_profit_buy_flow_ind_full = np.arange(1, len(sorted_excess_profit_buy_flow_ind_full) + 1) / len(sorted_excess_profit_buy_flow_ind_full)
 cumulative_prob_excess_profit_sell_flow_ind_full = np.arange(1, len(sorted_excess_profit_sell_flow_ind_full) + 1) / len(sorted_excess_profit_sell_flow_ind_full)
-plt.figure(figsize=(15, 10))
+plt.figure(figsize=(8, 5))
 plt.step(sorted_excess_profit_flow_ind_full, cumulative_prob_excess_profit_flow_ind_full, label='CDF', where='post')
 plt.step(sorted_excess_profit_buy_flow_ind_full, cumulative_prob_excess_profit_buy_flow_ind_full, label='buyers', where='post')
 plt.step(sorted_excess_profit_sell_flow_ind_full, cumulative_prob_excess_profit_sell_flow_ind_full, label='sellers', where='post')

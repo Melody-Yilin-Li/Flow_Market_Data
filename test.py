@@ -44,7 +44,7 @@ moving_average_size = 5
 participant = {}
 for g in range(1, num_groups + 1): 
     for r in range(1, num_rounds - prac_rounds + 1): 
-        path = '/Users/YilinLi/Downloads/flow production/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+        path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
         rnd = pd.read_json(
             path,
         )
@@ -57,7 +57,7 @@ for g in range(1, num_groups + 1):
         # # break
 
         name = 'par{}'.format(r)
-        path = '/Users/YilinLi/Downloads/flow production/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
+        path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
         participant[name] = pd.read_json(
             path,
             )

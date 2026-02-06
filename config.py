@@ -67,3 +67,9 @@ contract_buy = {
 ce_rate = [2 * i / round_length for i in ce_quantity]
 
 initial_seconds = 20
+
+colors = [
+    'lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', 'lightcoral', 'lightskyblue', 'pink',
+    'peachpuff', 'thistle', 'honeydew', 'powderblue', 'mistyrose', 'palegreen', 'paleturquoise', 'lightyellow',
+    'cornsilk', 'lemonchiffon', 'azure', 'aliceblue', 'seashell', 'beige', 'oldlace', 'floralwhite'
+]

@@ -239,11 +239,42 @@ plt.legend(bbox_to_anchor=(1, 1),
     loc='upper left', 
     borderaxespad=0.5)
 plt.ylim(0, 20)
+plt.xlim(0, round_length * (num_rounds - prac_rounds) + 1)
 plt.xlabel('Time')
 plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_length), np.arange(0, round_length * (num_rounds - prac_rounds) + 1, round_length))
 plt.ylabel('Price')
 # plt.title('CDA Transaction Prices vs Time')
 plt.savefig(os.path.join(figures_dir, 'groups_cda_price.png'))
+plt.close()
+
+plt.figure(figsize=(20, 5))
+plt.scatter(data=data_groups_mkt_cda[(data_groups_mkt_cda['clearing_price'] > 0) \
+                                         & (data_groups_mkt_cda['group_id'] == 1)], \
+            x='timestamp', y='mean_clearing_price', c='green', label='CDA', s=10,)
+plt.step(data=data_groups_mkt_cda[(data_groups_mkt_cda['group_id'] == 1)], \
+         x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
+
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_rounds - prac_rounds)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 18, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.ylim(0, 20)
+plt.xlim(0, round_length * (num_rounds - prac_rounds) + 1)
+plt.xlabel('Time')
+plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_length), np.arange(0, round_length * (num_rounds - prac_rounds) + 1, round_length))
+plt.ylabel('Price')
+# plt.title('CDA Transaction Prices vs Time')
+plt.savefig(os.path.join(figures_dir, 'groups_cda_price_single.png'))
 plt.close()
 
 

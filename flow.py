@@ -11,7 +11,7 @@ from sys import exit
 
 # input session constants 
 from config import *
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/data/'
+directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
 
 # Replace NaN by empty dict
 def replace_nans_with_dict(series):
@@ -113,7 +113,7 @@ for g in range(1, num_groups_flow + 1):
         reg_df_sec['round'] = r
         reg_df_sec['group'] = g
         reg_df_sec['block'] = reg_df_sec['round'] // ((num_rounds - prac_rounds) // blocks) + (reg_df_sec['round'] % ((num_rounds - prac_rounds) // blocks) != 0)
-        reg_df_sec['format'] = 'FlowR' if g <= num_groups_flow_low else 'FlowS'
+        reg_df_sec['format'] = 'Flow30' if g <= num_groups_flow_low else 'Flow60'
         reg_df_sec['ce_price'] = ce_price[r - 1]
         reg_df_sec['ce_quantity'] = ce_quantity[r - 1]
         reg_df_sec['treat'] = 'L' if g <= 5 else 'H'
@@ -138,7 +138,7 @@ for g in range(1, num_groups_flow + 1):
         result_reg_df['round'] = r
         result_reg_df['group'] = g
         result_reg_df['block'] = result_reg_df['round'] // ((num_rounds - prac_rounds) // blocks) + (result_reg_df['round'] % ((num_rounds - prac_rounds) // blocks) != 0)
-        result_reg_df['format'] = 'FlowR' if g <= num_groups_flow_low else 'FlowS'
+        result_reg_df['format'] = 'Flow30' if g <= num_groups_flow_low else 'Flow60'
         result_reg_df['price_change'] = result_reg_df['weighted_price'].diff()
         result_reg_df['price_change_int'] = result_reg_df['price_change_int'] * result_reg_df['quantity'] / result_reg_df['quantity'].sum()
         result_reg_df['ce_price'] = ce_price[r - 1]
@@ -222,10 +222,40 @@ plt.legend(bbox_to_anchor=(1, 1),
     borderaxespad=0.5)
 plt.ylim(0, 20)
 plt.xlabel('Time')
+plt.xlim(0, round_length * (num_rounds - prac_rounds) + 1)
 plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_length), np.arange(0, round_length * (num_rounds - prac_rounds) + 1, round_length))
 plt.ylabel('Price')
 # plt.title('Flow Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_price_r.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_price.png'))
+plt.close()
+
+plt.figure(figsize=(20, 5))
+plt.step(data=data_groups_mkt_flow[(data_groups_mkt_flow['mean_clearing_price'] > 0) \
+                                   & (data_groups_mkt_flow['group_id'] == 1)], \
+            x='timestamp', y='mean_clearing_price', where='pre', c='green', label='Flow30', linestyle='solid')
+plt.step(data=data_groups_mkt_flow[(data_groups_mkt_flow['group_id'] == 1)], \
+         x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_rounds - prac_rounds)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 18, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.ylim(0, 20)
+plt.xlim(0, round_length * (num_rounds - prac_rounds) + 1)
+plt.xlabel('Time')
+plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_length), np.arange(0, round_length * (num_rounds - prac_rounds) + 1, round_length))
+plt.ylabel('Price')
+# plt.title('Flow Transaction Prices vs Time')
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_price_single.png'))
 plt.close()
 
 plt.figure(figsize=(20, 5))
@@ -255,11 +285,42 @@ plt.legend(bbox_to_anchor=(1, 1),
     borderaxespad=0.5)
 plt.ylim(0, 20)
 plt.xlabel('Time')
+plt.xlim(0, round_length * (num_rounds - prac_rounds) + 1)
 plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_length), np.arange(0, round_length * (num_rounds - prac_rounds) + 1, round_length))
 plt.ylabel('Price')
 # plt.title('Flow Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_price_s.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_price.png'))
 plt.close()
+
+plt.figure(figsize=(20, 5))
+plt.step(data=data_groups_mkt_flow[(data_groups_mkt_flow['mean_clearing_price'] > 0) \
+                                   & (data_groups_mkt_flow['group_id'] == 6)], \
+            x='timestamp', y='mean_clearing_price', where='pre', c='green', label='Flow60', linestyle='solid')
+plt.step(data=data_groups_mkt_flow[(data_groups_mkt_flow['group_id'] == 6)], \
+         x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_rounds - prac_rounds)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 18, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.ylim(0, 20)
+plt.xlabel('Time')
+plt.xlim(0, round_length * (num_rounds - prac_rounds) + 1)
+plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_length), np.arange(0, round_length * (num_rounds - prac_rounds) + 1, round_length))
+plt.ylabel('Price')
+# plt.title('Flow Transaction Prices vs Time')
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_price_single.png'))
+plt.close()
+
 
 # plot clearing rates in all rounds for all groups 
 plt.figure(figsize=(20, 5))
@@ -291,7 +352,7 @@ plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_len
 plt.ylabel('Shares/second')
 plt.ylim(0, 35)
 # plt.title('Flow Transaction Rates vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_rate_r.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_rate.png'))
 plt.close()
 
 plt.figure(figsize=(20, 5))
@@ -323,7 +384,7 @@ plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_len
 plt.ylabel('Shares/second')
 plt.ylim(0, 35)
 # plt.title('Flow Transaction Rates vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_rate_s.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_rate.png'))
 plt.close()
 
 # plot cumulative quantities in all rounds for all groups 
@@ -357,7 +418,7 @@ plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_len
 plt.ylabel('Shares')
 plt.ylim(0, 2000)
 # plt.title('Flow Cumulative Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_cumsum_r.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_cumsum.png'))
 plt.close()
 
 
@@ -393,7 +454,7 @@ plt.xticks(np.arange(1, round_length * (num_rounds - prac_rounds) + 2, round_len
 plt.ylabel('Shares')
 plt.ylim(0, 2000)
 # plt.title('Flow Cumulative Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_cumsum_s.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_cumsum.png'))
 plt.close()
 
 
@@ -526,7 +587,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_surplus_r.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_surplus.png'))
 plt.close()
 
 plt.figure(figsize=(8, 5))
@@ -547,7 +608,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_surplus_s.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_surplus.png'))
 plt.close()
 
 # contract execution for all groups
@@ -569,7 +630,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Percent')
 plt.title('Filled Contract vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_contract_r.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_contract.png'))
 plt.close()
 
 plt.figure(figsize=(8, 5))
@@ -590,7 +651,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Percent')
 plt.title('Filled Contract vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_contract_s.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_contract.png'))
 plt.close()
 
 # traded volume for all groups
@@ -612,7 +673,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_quantity_r.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_quantity.png'))
 plt.close()
 
 
@@ -634,7 +695,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_quantity_s.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_quantity.png'))
 plt.close()
 
 
@@ -657,7 +718,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Price')
 plt.title('Time-Weighted Price vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_time_weighted_price_r.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_time_weighted_price.png'))
 plt.close()
 
 plt.figure(figsize=(8, 5))
@@ -678,7 +739,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Price')
 plt.title('Time-Weighted Price vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_time_weighted_price_s.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_time_weighted_price.png'))
 plt.close()
 
 # unit weighted price for all groups
@@ -700,7 +761,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Price')
 plt.title('Unit-Weighted Price vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_unit_weighted_price_r.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow30_unit_weighted_price.png'))
 plt.close()
 
 plt.figure(figsize=(8, 5))
@@ -721,7 +782,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
 plt.ylabel('Price')
 plt.title('Unit-Weighted Price vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_unit_weighted_price_s.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow60_unit_weighted_price.png'))
 plt.close()
 
 ########## ---------- summary_flow statistics ---------- ##########
@@ -795,7 +856,7 @@ regress_flow_period = summary_flow[['group_id', 'round', 'price_dev', 'payoff_pe
 
 regress_flow_period['block'] = regress_flow_period['round'] // ((num_rounds - prac_rounds) // blocks) + (regress_flow_period['round'] % ((num_rounds - prac_rounds) // blocks) != 0).astype(int)
 regress_flow_period['format'] = regress_flow_period['group_id'].apply(
-    lambda x: 'FlowR' if x <= num_groups_flow_low else 'FlowS'
+    lambda x: 'Flow30' if x <= num_groups_flow_low else 'Flow60'
 )
 regress_flow_period['ce_quantity'] = regress_flow_period['block'].apply(lambda x: quantity[x - 1])
 

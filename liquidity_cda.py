@@ -90,7 +90,7 @@ def get_best_bids_asks(orders):
 for g in range(1, num_groups_cda + 1):
     group_mkt = []
     for r in range(1, num_rounds - prac_rounds + 1): 
-        path = directory + 'flow production/data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
         rnd = pd.read_json(
             path,
         )
@@ -104,7 +104,7 @@ for g in range(1, num_groups_cda + 1):
 
 
     for r in range(1, num_rounds - prac_rounds + 1):
-        path = directory + 'flow production/data/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
+        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
         rnd = pd.read_json(
             path,
         )

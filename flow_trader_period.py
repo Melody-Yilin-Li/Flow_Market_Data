@@ -2,6 +2,17 @@ import numpy as np
 import pandas as pd
 from collections import defaultdict 
 import matplotlib.pyplot as plt 
+plt.rcParams.update({
+    'font.family': 'serif',
+    'font.size': 16,
+    'axes.titlesize': 16,
+    'axes.labelsize': 16,
+    'axes.titleweight': 'bold',
+    'axes.labelweight': 'bold',
+    'xtick.labelsize': 16,
+    'ytick.labelsize': 16,
+})
+
 from matplotlib.ticker import StrMethodFormatter
 plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) # 2 decimal places
 import seaborn as sns
@@ -12,7 +23,7 @@ from sys import exit
 # input session constants 
 from config import *
 
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/data/'
+directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
 
 
 # Replace NaN by empty dict
@@ -196,7 +207,7 @@ for g in range(1, num_groups_flow + 1):
         rnd['excess_profit'] = rnd['profit'] - rnd['ind_ce_profit']
         rnd.loc[(rnd['ind_ce_profit'] == 0) & (rnd['profit'] >= 0), 'realized_surplus'] = np.nan
         rnd.loc[(rnd['ind_ce_profit'] == 0) & (rnd['profit'] < 0), 'realized_surplus'] = np.nan
-        rnd['format'] = 'FlowR' if g <= num_groups_flow_low else 'FlowS'
+        rnd['format'] = 'Flow30' if g <= num_groups_flow_low else 'Flow60'
         rnd['time']  = 'T1-T10' if r <= (num_rounds - prac_rounds) // 2 else 'T11-T20'
     
         flow_trader_period = pd.concat([flow_trader_period, rnd], ignore_index=True, sort=False)
@@ -236,11 +247,11 @@ cumulative_prob_order_price_diff_buy_flow_s_last = np.arange(1, len(sorted_order
 cumulative_prob_order_price_diff_sell_flow_r_last = np.arange(1, len(sorted_order_price_diff_sell_flow_r_last) + 1) / len(sorted_order_price_diff_sell_flow_r_last)
 cumulative_prob_order_price_diff_sell_flow_s_last = np.arange(1, len(sorted_order_price_diff_sell_flow_s_last) + 1) / len(sorted_order_price_diff_sell_flow_s_last)
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_order_price_diff_buy_flow_r, cumulative_prob_order_price_diff_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_order_price_diff_sell_flow_r, cumulative_prob_order_price_diff_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_order_price_diff_buy_flow_s, cumulative_prob_order_price_diff_buy_flow_s, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_order_price_diff_sell_flow_s, cumulative_prob_order_price_diff_sell_flow_s, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_order_price_diff_buy_flow_r, cumulative_prob_order_price_diff_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_order_price_diff_sell_flow_r, cumulative_prob_order_price_diff_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_order_price_diff_buy_flow_s, cumulative_prob_order_price_diff_buy_flow_s, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_order_price_diff_sell_flow_s, cumulative_prob_order_price_diff_sell_flow_s, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of the Order Price Difference (T1-T20)')
 plt.xlabel('Order Width')
 plt.ylabel('Probability')
@@ -249,15 +260,15 @@ plt.savefig(os.path.join(figures_dir, 'groups_flow_order_price_diff_cdf_full.png
 plt.close()
 
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_order_price_diff_buy_flow_r_first, cumulative_prob_order_price_diff_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T1-T10')
-plt.plot(sorted_order_price_diff_sell_flow_r_first, cumulative_prob_order_price_diff_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T1-T10')
-plt.plot(sorted_order_price_diff_buy_flow_s_first, cumulative_prob_order_price_diff_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T1-T10')
-plt.plot(sorted_order_price_diff_sell_flow_s_first, cumulative_prob_order_price_diff_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T1-T10')
-plt.plot(sorted_order_price_diff_buy_flow_r_last, cumulative_prob_order_price_diff_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T11-T20')
-plt.plot(sorted_order_price_diff_sell_flow_r_last, cumulative_prob_order_price_diff_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T11-T20')
-plt.plot(sorted_order_price_diff_buy_flow_s_last, cumulative_prob_order_price_diff_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T11-T20')
-plt.plot(sorted_order_price_diff_sell_flow_s_last, cumulative_prob_order_price_diff_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T11-T20')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_order_price_diff_buy_flow_r_first, cumulative_prob_order_price_diff_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T1-T10')
+plt.plot(sorted_order_price_diff_sell_flow_r_first, cumulative_prob_order_price_diff_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T1-T10')
+plt.plot(sorted_order_price_diff_buy_flow_s_first, cumulative_prob_order_price_diff_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T1-T10')
+plt.plot(sorted_order_price_diff_sell_flow_s_first, cumulative_prob_order_price_diff_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T1-T10')
+plt.plot(sorted_order_price_diff_buy_flow_r_last, cumulative_prob_order_price_diff_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T11-T20')
+plt.plot(sorted_order_price_diff_sell_flow_r_last, cumulative_prob_order_price_diff_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T11-T20')
+plt.plot(sorted_order_price_diff_buy_flow_s_last, cumulative_prob_order_price_diff_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T11-T20')
+plt.plot(sorted_order_price_diff_sell_flow_s_last, cumulative_prob_order_price_diff_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T11-T20')
 plt.title('CDF of the Order Price Difference')
 plt.xlabel('Order Width')
 plt.ylabel('Probability')
@@ -296,11 +307,11 @@ cumulative_prob_realized_surplus_buy_flow_s_last = np.arange(1, len(sorted_reali
 cumulative_prob_realized_surplus_sell_flow_r_last = np.arange(1, len(sorted_realized_surplus_sell_flow_r_last) + 1) / len(sorted_realized_surplus_sell_flow_r_last)
 cumulative_prob_realized_surplus_sell_flow_s_last = np.arange(1, len(sorted_realized_surplus_sell_flow_s_last) + 1) / len(sorted_realized_surplus_sell_flow_s_last)
 
-plt.figure(figsize=(20, 10))
-plt.plot(sorted_realized_surplus_buy_flow_r, cumulative_prob_realized_surplus_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_realized_surplus_sell_flow_r, cumulative_prob_realized_surplus_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_realized_surplus_buy_flow_s, cumulative_prob_realized_surplus_buy_flow_s, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_realized_surplus_sell_flow_s, cumulative_prob_realized_surplus_sell_flow_s, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_realized_surplus_buy_flow_r, cumulative_prob_realized_surplus_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_realized_surplus_sell_flow_r, cumulative_prob_realized_surplus_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_realized_surplus_buy_flow_s, cumulative_prob_realized_surplus_buy_flow_s, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_realized_surplus_sell_flow_s, cumulative_prob_realized_surplus_sell_flow_s, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of the Realized Surplus (T1-T20)')
 plt.xlabel('Realized Surplus')
 plt.ylabel('Probability')
@@ -308,15 +319,15 @@ plt.legend()
 plt.savefig(os.path.join(figures_dir, 'groups_flow_realized_surplus_cdf_full.png'))
 plt.close()
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_realized_surplus_buy_flow_r_first, cumulative_prob_realized_surplus_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T1-T10')
-plt.plot(sorted_realized_surplus_sell_flow_r_first, cumulative_prob_realized_surplus_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T1-T10')
-plt.plot(sorted_realized_surplus_buy_flow_s_first, cumulative_prob_realized_surplus_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T1-T10')
-plt.plot(sorted_realized_surplus_sell_flow_s_first, cumulative_prob_realized_surplus_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T1-T10')
-plt.plot(sorted_realized_surplus_buy_flow_r_last, cumulative_prob_realized_surplus_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T11-T20')
-plt.plot(sorted_realized_surplus_sell_flow_r_last, cumulative_prob_realized_surplus_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T11-T20')
-plt.plot(sorted_realized_surplus_buy_flow_s_last, cumulative_prob_realized_surplus_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T11-T20')
-plt.plot(sorted_realized_surplus_sell_flow_s_last, cumulative_prob_realized_surplus_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T11-T20')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_realized_surplus_buy_flow_r_first, cumulative_prob_realized_surplus_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T1-T10')
+plt.plot(sorted_realized_surplus_sell_flow_r_first, cumulative_prob_realized_surplus_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T1-T10')
+plt.plot(sorted_realized_surplus_buy_flow_s_first, cumulative_prob_realized_surplus_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T1-T10')
+plt.plot(sorted_realized_surplus_sell_flow_s_first, cumulative_prob_realized_surplus_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T1-T10')
+plt.plot(sorted_realized_surplus_buy_flow_r_last, cumulative_prob_realized_surplus_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T11-T20')
+plt.plot(sorted_realized_surplus_sell_flow_r_last, cumulative_prob_realized_surplus_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T11-T20')
+plt.plot(sorted_realized_surplus_buy_flow_s_last, cumulative_prob_realized_surplus_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T11-T20')
+plt.plot(sorted_realized_surplus_sell_flow_s_last, cumulative_prob_realized_surplus_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T11-T20')
 plt.title('CDF of the Realized Surplus')
 plt.xlabel('Realized Surplus')
 plt.ylabel('Probability')
@@ -368,11 +379,11 @@ cumulative_prob_price_dev_from_contract_sell_flow_s_last = np.arange(1, len(sort
 cumulative_prob_price_dev_from_contract_buy_cda_last = np.arange(1, len(sorted_price_dev_from_contract_buy_cda_last) + 1) / len(sorted_price_dev_from_contract_buy_cda_last)
 cumulative_prob_price_dev_from_contract_sell_cda_last = np.arange(1, len(sorted_price_dev_from_contract_sell_cda_last) + 1) / len(sorted_price_dev_from_contract_sell_cda_last)
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_price_dev_from_contract_buy_flow_r, cumulative_prob_price_dev_from_contract_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_price_dev_from_contract_sell_flow_r, cumulative_prob_price_dev_from_contract_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_price_dev_from_contract_buy_flow_s, cumulative_prob_price_dev_from_contract_buy_flow_s, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_price_dev_from_contract_sell_flow_s, cumulative_prob_price_dev_from_contract_sell_flow_s, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_price_dev_from_contract_buy_flow_r, cumulative_prob_price_dev_from_contract_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_price_dev_from_contract_sell_flow_r, cumulative_prob_price_dev_from_contract_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_price_dev_from_contract_buy_flow_s, cumulative_prob_price_dev_from_contract_buy_flow_s, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_price_dev_from_contract_sell_flow_s, cumulative_prob_price_dev_from_contract_sell_flow_s, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.plot(sorted_price_dev_from_contract_buy_cda, cumulative_prob_price_dev_from_contract_buy_cda, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_price_dev_from_contract_sell_cda, cumulative_prob_price_dev_from_contract_sell_cda, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
 plt.title('CDF of the Price Deviation from Contract Price (T1-T20)')
@@ -383,14 +394,14 @@ plt.savefig(os.path.join(figures_dir, 'groups_flow_price_dev_from_contract_cdf_f
 plt.close()
 
 zero_counts = {
-    "FlowR Buyer T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_buy_flow_r_first == 0), len(sorted_price_dev_from_contract_buy_flow_r_first)),
-    "FlowS Buyer T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_buy_flow_s_first == 0), len(sorted_price_dev_from_contract_buy_flow_s_first)), 
-    "FlowR Seller T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_sell_flow_r_first == 0), len(sorted_price_dev_from_contract_sell_flow_r_first)),
-    "FlowS Seller T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_sell_flow_s_first == 0), len(sorted_price_dev_from_contract_sell_flow_s_first)),
-    "FlowR Buyer T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_buy_flow_r_last == 0), len(sorted_price_dev_from_contract_buy_flow_r_last)),
-    "FlowS Buyer T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_buy_flow_s_last == 0), len(sorted_price_dev_from_contract_buy_flow_s_last)),
-    "FlowR Seller T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_sell_flow_r_last == 0), len(sorted_price_dev_from_contract_sell_flow_r_last)),
-    "FlowS Seller T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_sell_flow_s_last == 0), len(sorted_price_dev_from_contract_sell_flow_s_last)),
+    "Flow30 Buyer T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_buy_flow_r_first == 0), len(sorted_price_dev_from_contract_buy_flow_r_first)),
+    "Flow60 Buyer T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_buy_flow_s_first == 0), len(sorted_price_dev_from_contract_buy_flow_s_first)), 
+    "Flow30 Seller T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_sell_flow_r_first == 0), len(sorted_price_dev_from_contract_sell_flow_r_first)),
+    "Flow60 Seller T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_sell_flow_s_first == 0), len(sorted_price_dev_from_contract_sell_flow_s_first)),
+    "Flow30 Buyer T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_buy_flow_r_last == 0), len(sorted_price_dev_from_contract_buy_flow_r_last)),
+    "Flow60 Buyer T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_buy_flow_s_last == 0), len(sorted_price_dev_from_contract_buy_flow_s_last)),
+    "Flow30 Seller T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_sell_flow_r_last == 0), len(sorted_price_dev_from_contract_sell_flow_r_last)),
+    "Flow60 Seller T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_sell_flow_s_last == 0), len(sorted_price_dev_from_contract_sell_flow_s_last)),
     "CDA Buyer T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_buy_cda_first == 0), len(sorted_price_dev_from_contract_buy_cda_first)),
     "CDA Seller T1-T10": (np.count_nonzero(sorted_price_dev_from_contract_sell_cda_first == 0), len(sorted_price_dev_from_contract_sell_cda_first)),
     "CDA Buyer T11-T20": (np.count_nonzero(sorted_price_dev_from_contract_buy_cda_last == 0), len(sorted_price_dev_from_contract_buy_cda_last)),
@@ -403,15 +414,15 @@ print("-------------------------------------------------")
 for label, count in zero_counts.items():
     print(f"{label}: {count}")
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_price_dev_from_contract_buy_flow_r_first, cumulative_prob_price_dev_from_contract_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T1-T10')
-plt.plot(sorted_price_dev_from_contract_sell_flow_r_first, cumulative_prob_price_dev_from_contract_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T1-T10')
-plt.plot(sorted_price_dev_from_contract_buy_flow_s_first, cumulative_prob_price_dev_from_contract_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T1-T10')
-plt.plot(sorted_price_dev_from_contract_sell_flow_s_first, cumulative_prob_price_dev_from_contract_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T1-T10')
-plt.plot(sorted_price_dev_from_contract_buy_flow_r_last, cumulative_prob_price_dev_from_contract_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T11-T20')
-plt.plot(sorted_price_dev_from_contract_sell_flow_r_last, cumulative_prob_price_dev_from_contract_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T11-T20')
-plt.plot(sorted_price_dev_from_contract_buy_flow_s_last, cumulative_prob_price_dev_from_contract_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T11-T20')
-plt.plot(sorted_price_dev_from_contract_sell_flow_s_last, cumulative_prob_price_dev_from_contract_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T11-T20')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_price_dev_from_contract_buy_flow_r_first, cumulative_prob_price_dev_from_contract_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T1-T10')
+plt.plot(sorted_price_dev_from_contract_sell_flow_r_first, cumulative_prob_price_dev_from_contract_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T1-T10')
+plt.plot(sorted_price_dev_from_contract_buy_flow_s_first, cumulative_prob_price_dev_from_contract_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T1-T10')
+plt.plot(sorted_price_dev_from_contract_sell_flow_s_first, cumulative_prob_price_dev_from_contract_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T1-T10')
+plt.plot(sorted_price_dev_from_contract_buy_flow_r_last, cumulative_prob_price_dev_from_contract_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T11-T20')
+plt.plot(sorted_price_dev_from_contract_sell_flow_r_last, cumulative_prob_price_dev_from_contract_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T11-T20')
+plt.plot(sorted_price_dev_from_contract_buy_flow_s_last, cumulative_prob_price_dev_from_contract_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T11-T20')
+plt.plot(sorted_price_dev_from_contract_sell_flow_s_last, cumulative_prob_price_dev_from_contract_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T11-T20')
 plt.title('CDF of the Price Deviation from Contract Price')
 plt.xlabel('Price Minimum Margin')
 plt.ylabel('Probability')
@@ -451,11 +462,11 @@ cumulative_prob_max_rate_buy_flow_s_last = np.arange(1, len(sorted_max_rate_buy_
 cumulative_prob_max_rate_sell_flow_r_last = np.arange(1, len(sorted_max_rate_sell_flow_r_last) + 1) / len(sorted_max_rate_sell_flow_r_last)
 cumulative_prob_max_rate_sell_flow_s_last = np.arange(1, len(sorted_max_rate_sell_flow_s_last) + 1) / len(sorted_max_rate_sell_flow_s_last)
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_max_rate_buy_flow_r, cumulative_prob_max_rate_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_max_rate_sell_flow_r, cumulative_prob_max_rate_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_max_rate_buy_flow_s, cumulative_prob_max_rate_buy_flow_s, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_max_rate_sell_flow_s, cumulative_prob_max_rate_sell_flow_s, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_max_rate_buy_flow_r, cumulative_prob_max_rate_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_max_rate_sell_flow_r, cumulative_prob_max_rate_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_max_rate_buy_flow_s, cumulative_prob_max_rate_buy_flow_s, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_max_rate_sell_flow_s, cumulative_prob_max_rate_sell_flow_s, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of the Max Rate (T1-T20)')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
@@ -463,15 +474,15 @@ plt.legend()
 plt.savefig(os.path.join(figures_dir,  'groups_flow_max_rate_cdf_full.png'))
 plt.close()
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_max_rate_buy_flow_r_first, cumulative_prob_max_rate_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T1-T10')
-plt.plot(sorted_max_rate_sell_flow_r_first, cumulative_prob_max_rate_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T1-T10')
-plt.plot(sorted_max_rate_buy_flow_s_first, cumulative_prob_max_rate_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T1-T10')
-plt.plot(sorted_max_rate_sell_flow_s_first, cumulative_prob_max_rate_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T1-T10')
-plt.plot(sorted_max_rate_buy_flow_r_last, cumulative_prob_max_rate_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T11-T20')
-plt.plot(sorted_max_rate_sell_flow_r_last, cumulative_prob_max_rate_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T11-T20')
-plt.plot(sorted_max_rate_buy_flow_s_last, cumulative_prob_max_rate_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T11-T20')
-plt.plot(sorted_max_rate_sell_flow_s_last, cumulative_prob_max_rate_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T11-T20')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_max_rate_buy_flow_r_first, cumulative_prob_max_rate_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T1-T10')
+plt.plot(sorted_max_rate_sell_flow_r_first, cumulative_prob_max_rate_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T1-T10')
+plt.plot(sorted_max_rate_buy_flow_s_first, cumulative_prob_max_rate_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T1-T10')
+plt.plot(sorted_max_rate_sell_flow_s_first, cumulative_prob_max_rate_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T1-T10')
+plt.plot(sorted_max_rate_buy_flow_r_last, cumulative_prob_max_rate_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T11-T20')
+plt.plot(sorted_max_rate_sell_flow_r_last, cumulative_prob_max_rate_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T11-T20')
+plt.plot(sorted_max_rate_buy_flow_s_last, cumulative_prob_max_rate_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T11-T20')
+plt.plot(sorted_max_rate_sell_flow_s_last, cumulative_prob_max_rate_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T11-T20')
 plt.title('CDF of the Max Rate')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
@@ -510,11 +521,11 @@ cumulative_prob_max_rate_percent_buy_flow_s_last = np.arange(1, len(sorted_max_r
 cumulative_prob_max_rate_percent_sell_flow_r_last = np.arange(1, len(sorted_max_rate_percent_sell_flow_r_last) + 1) / len(sorted_max_rate_percent_sell_flow_r_last)
 cumulative_prob_max_rate_percent_sell_flow_s_last = np.arange(1, len(sorted_max_rate_percent_sell_flow_s_last) + 1) / len(sorted_max_rate_percent_sell_flow_s_last)
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_max_rate_percent_buy_flow_r, cumulative_prob_max_rate_percent_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_max_rate_percent_sell_flow_r, cumulative_prob_max_rate_percent_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_max_rate_percent_buy_flow_s, cumulative_prob_max_rate_percent_buy_flow_s, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_max_rate_percent_sell_flow_s, cumulative_prob_max_rate_percent_sell_flow_s, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_max_rate_percent_buy_flow_r, cumulative_prob_max_rate_percent_buy_flow_r, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_max_rate_percent_sell_flow_r, cumulative_prob_max_rate_percent_sell_flow_r, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_max_rate_percent_buy_flow_s, cumulative_prob_max_rate_percent_buy_flow_s, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_max_rate_percent_sell_flow_s, cumulative_prob_max_rate_percent_sell_flow_s, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of the Max Rate (T1-T20)')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
@@ -523,15 +534,15 @@ plt.savefig(os.path.join(figures_dir, 'groups_flow_max_rate_percent_cdf_full.png
 plt.close()
 
 
-plt.figure(figsize=(15, 10))
-plt.plot(sorted_max_rate_percent_buy_flow_r_first, cumulative_prob_max_rate_percent_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T1-T10')
-plt.plot(sorted_max_rate_percent_sell_flow_r_first, cumulative_prob_max_rate_percent_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T1-T10')
-plt.plot(sorted_max_rate_percent_buy_flow_s_first, cumulative_prob_max_rate_percent_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T1-T10')
-plt.plot(sorted_max_rate_percent_sell_flow_s_first, cumulative_prob_max_rate_percent_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T1-T10')
-plt.plot(sorted_max_rate_percent_buy_flow_r_last, cumulative_prob_max_rate_percent_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer T11-T20')
-plt.plot(sorted_max_rate_percent_sell_flow_r_last, cumulative_prob_max_rate_percent_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller T11-T20')
-plt.plot(sorted_max_rate_percent_buy_flow_s_last, cumulative_prob_max_rate_percent_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer T11-T20')
-plt.plot(sorted_max_rate_percent_sell_flow_s_last, cumulative_prob_max_rate_percent_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller T11-T20')
+plt.figure(figsize=(8, 6))
+plt.plot(sorted_max_rate_percent_buy_flow_r_first, cumulative_prob_max_rate_percent_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T1-T10')
+plt.plot(sorted_max_rate_percent_sell_flow_r_first, cumulative_prob_max_rate_percent_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T1-T10')
+plt.plot(sorted_max_rate_percent_buy_flow_s_first, cumulative_prob_max_rate_percent_buy_flow_s_first, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T1-T10')
+plt.plot(sorted_max_rate_percent_sell_flow_s_first, cumulative_prob_max_rate_percent_sell_flow_s_first, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T1-T10')
+plt.plot(sorted_max_rate_percent_buy_flow_r_last, cumulative_prob_max_rate_percent_buy_flow_r_last, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T11-T20')
+plt.plot(sorted_max_rate_percent_sell_flow_r_last, cumulative_prob_max_rate_percent_sell_flow_r_last, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T11-T20')
+plt.plot(sorted_max_rate_percent_buy_flow_s_last, cumulative_prob_max_rate_percent_buy_flow_s_last, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T11-T20')
+plt.plot(sorted_max_rate_percent_sell_flow_s_last, cumulative_prob_max_rate_percent_sell_flow_s_last, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T11-T20')
 plt.title('CDF of the Max Rate')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
@@ -642,6 +653,31 @@ ax.set_ylabel('Excess Profits')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
 plt.savefig(os.path.join(figures_dir, 'groups_flow_price_dev_from_contract_vs_excess_profit.png'))
+plt.close()
+
+
+# max_rate_percent vs realized surplus 
+fig, ax = plt.subplots(figsize=(15, 10))
+for i, group in enumerate(flow_trader_period['category'].unique()):
+    valid_data = flow_trader_period[['max_rate_percent', 'realized_surplus', 'category']].dropna()
+    valid_data = valid_data[valid_data['category'] == group]
+    ax.scatter(valid_data['max_rate_percent'], 
+               valid_data['realized_surplus'], 
+               marker=markers[i % len(markers)], 
+               color=colors[i % len(colors)], 
+               label=group, 
+               alpha=0.5)
+    
+    coeffs = np.polyfit(valid_data['max_rate_percent'], valid_data['realized_surplus'], 1)
+    x_vals = np.linspace(valid_data['max_rate_percent'].min(), valid_data['max_rate_percent'].max(), 100)
+    y_vals = coeffs[0] * x_vals + coeffs[1]
+    ax.plot(x_vals, y_vals, color=colors[i % len(colors)], linestyle='--', alpha=0.5)
+ax.set_title('Max Rate Percent vs Realized Surplus')
+ax.set_xlabel('Max Rate Percent')
+ax.set_ylabel('Realized Surplus')
+ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.tight_layout()
+plt.savefig(os.path.join(figures_dir, 'groups_flow_max_rate_percent_vs_realized_surplus.png'))
 plt.close()
 
 

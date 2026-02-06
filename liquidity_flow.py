@@ -9,7 +9,7 @@ import faulthandler; faulthandler.enable()
 from functools import reduce                # Import reduce function
 from sys import exit
 import heapq
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/data/'
+directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
 
 # Replace NaN by empty dict
 def replace_nans_with_dict(series):
@@ -383,7 +383,7 @@ for g in range(1, num_groups_flow + 1):
             diff = calculate_vertical_diff(bids_kinks, asks_kinks)
             # ppi = integral / liquidity_shares
             result.at[ind, 'ppi'] = diff / small_rate_change
-        result['format'] = 'FlowR' if g <= num_groups_flow_low else 'FlowS'
+        result['format'] = 'Flow30' if g <= num_groups_flow_low else 'Flow60'
         liquidity_flow_period = pd.concat([liquidity_flow_period, result])
 
 liquidity_flow_period['liquidity'] = liquidity_flow_period['supply_slope'] - liquidity_flow_period['demand_slope']

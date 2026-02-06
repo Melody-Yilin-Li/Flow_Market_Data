@@ -8,10 +8,22 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from stargazer.stargazer import Stargazer
 from matplotlib import rc
+import matplotlib.pyplot as plt
+plt.rcParams.update({
+    'font.family': 'serif',
+    'font.size': 16,
+    'axes.titlesize': 16,
+    'axes.labelsize': 16,
+    'axes.titleweight': 'bold',
+    'axes.labelweight': 'bold',
+    'xtick.labelsize': 16,
+    'ytick.labelsize': 16,
+})
+
 import os 
 rc('text',usetex=True)
 
-data_directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/'
+data_directory = '/Users/YilinLi/Documents/UCSC/Flow Data/FLOW_MARKET_DATA/'
 
 required_files= [
     'data_interval.csv', 
@@ -60,7 +72,7 @@ def main():
     print("params imported")
 
 if __name__ == "__main__":
-     main()
+    main()
 
 print('liquidity')
 exec(open(data_directory + 'liquidity_cda.py').read())
@@ -116,6 +128,7 @@ print('FLOW INDIVIDUAL RESULTS')
 exec(open(data_directory + 'flow_ind.py').read())
 
 
+exec(open(data_directory + 'new_plots.py').read())
 
 # temp
 check_negative_flow = list(filter(lambda x: x < 0, profits_buy_flow_r_ind_full + profits_sell_flow_r_ind_full + profits_buy_flow_s_ind_full + profits_sell_flow_s_ind_full))
@@ -178,7 +191,7 @@ regress_data_interval['group_id'] = regress_data_interval['group']
 regress_data_interval['group'] = regress_data_interval['format'] + regress_data_interval['group'].astype(str)
 categorical_cols = ['format']
 regress_data_interval[categorical_cols] = regress_data_interval[categorical_cols].astype('category')
-format_mapping = {'CDA': 0, 'FlowR': 1, 'FlowS': 2}
+format_mapping = {'CDA': 0, 'Flow30': 1, 'Flow60': 2}
 regress_data_interval['format_num'] = regress_data_interval['format'].map(format_mapping)
 # regress_data_interval['test'] = (regress_data_interval['round'] - (num_rounds - prac_rounds)) * regress_data_interval['format_num']
 # regress_data_interval['test_new'] = (1 - regress_data_interval['round'] / (num_rounds - prac_rounds)) * regress_data_interval['format_num']
@@ -241,141 +254,141 @@ regress_data_liquidity.to_csv(os.path.join(tables_dir, 'data_liquidity.csv'), in
 print("unweighted price statistics", 
     '\nAverage Price & {} & {} & {} & {} & {} & {} & {} & {} & {}'.format(
     regress_data_second[(regress_data_second['format'] == 'CDA')]['clearing_price'].mean().round(2),
-    regress_data_second[(regress_data_second['format'] == 'FlowR')]['clearing_price'].mean().round(2),
-    regress_data_second[(regress_data_second['format'] == 'FlowS')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().round(2),
     regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'CDA')]['clearing_price'].mean().round(2),
-    regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowR')]['clearing_price'].mean().round(2),
-    regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowS')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().round(2),
     regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'CDA')]['clearing_price'].mean().round(2),
-    regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowR')]['clearing_price'].mean().round(2),
-    regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowS')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().round(2),
     ),
     '\n|Price - P_CE| & {} & {} & {} & {} & {} & {} & {} & {} & {}'.format(
     regress_data_second[(regress_data_second['format'] == 'CDA')]['price_deviation'].mean().round(2),
-    regress_data_second[(regress_data_second['format'] == 'FlowR')]['price_deviation'].mean().round(2),
-    regress_data_second[(regress_data_second['format'] == 'FlowS')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().round(2),
     regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'CDA')]['price_deviation'].mean().round(2),
-    regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowR')]['price_deviation'].mean().round(2),
-    regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowS')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().round(2),
     regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'CDA')]['price_deviation'].mean().round(2),
-    regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowR')]['price_deviation'].mean().round(2),
-    regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowS')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().round(2),
     ),
     '\n|P_t - P_t - 1| & {} & {} & {} & {} & {} & {} & {} & {} & {}'.format(
     abs(regress_data_second[(regress_data_second['format'] == 'CDA')]['price_change']).mean().round(2),
-    abs(regress_data_second[(regress_data_second['format'] == 'FlowR')]['price_change']).mean().round(2),
-    abs(regress_data_second[(regress_data_second['format'] == 'FlowS')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['format'] == 'Flow30')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['format'] == 'Flow60')]['price_change']).mean().round(2),
     abs(regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'CDA')]['price_change']).mean().round(2),
-    abs(regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowR')]['price_change']).mean().round(2),
-    abs(regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowS')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow30')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow60')]['price_change']).mean().round(2),
     abs(regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'CDA')]['price_change']).mean().round(2),
-    abs(regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowR')]['price_change']).mean().round(2),
-    abs(regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'FlowS')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow30')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_second['format'] == 'Flow60')]['price_change']).mean().round(2),
     ),
     '\nStd(ln P_t - ln P_t - 1) & {} & {} & {} & {} & {} & {} & {} & {} & {}'.format(
     regress_data_period[(regress_data_period['format'] == 'CDA')]['change_log_price'].mean().round(2),
-    regress_data_period[(regress_data_period['format'] == 'FlowR')]['change_log_price'].mean().round(2),
-    regress_data_period[(regress_data_period['format'] == 'FlowS')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().round(2),
     regress_data_period[(regress_data_period['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'CDA')]['change_log_price'].mean().round(2),
-    regress_data_period[(regress_data_period['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'FlowR')]['change_log_price'].mean().round(2),
-    regress_data_period[(regress_data_period['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'FlowS')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().round(2),
     regress_data_period[(regress_data_period['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'CDA')]['change_log_price'].mean().round(2),
-    regress_data_period[(regress_data_period['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'FlowR')]['change_log_price'].mean().round(2),
-    regress_data_period[(regress_data_period['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'FlowS')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().round(2),
     )
 )
 
 
 summary_market_full = [
-    [None, 'CDA', 'FlowR', 'FlowS', 'CDA', 'FlowR', 'FLOw_H', 'CDA', 'FlowR', 'FlowS', ], 
+    [None, 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'FLOw_H', 'CDA', 'Flow30', 'Flow60', ], 
     [None, 'T1 - T20', 'T1 - T20', 'T1 - T20', 'T1 - T10', 'T1 - T10', 'T1 - T10', 'T11 - T20', 'T11 - T20', 'T11 - T20', ], 
     ['Clearing Price', 
         regress_data_interval[(regress_data_interval['format'] == 'CDA')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowR')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowS')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow30')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow60')]['weighted_price'].mean(),
         regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['weighted_price'].mean(),
         regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['weighted_price'].mean(),
     ],
     ['Std. Dev.', 
         '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'CDA')]['weighted_price'].std()), 
-        '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'FlowR')]['weighted_price'].std()),
-        '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'FlowS')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'Flow30')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'Flow60')]['weighted_price'].std()),
         '({})'.format(regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['weighted_price'].std()), 
-        '({})'.format(regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['weighted_price'].std()), 
-        '({})'.format(regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['weighted_price'].std()), 
+        '({})'.format(regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['weighted_price'].std()),
         '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['weighted_price'].std()), 
-        '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['weighted_price'].std()),
-        '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['weighted_price'].std()),
     ], 
     ['|P_{t} - P_{t - 1}|', 
         regress_data_interval[(regress_data_interval['format'] == 'CDA')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowR')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowS')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow30')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow60')]['price_change'].abs().mean(),
         regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['price_change'].abs().mean(),
         regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['price_change'].abs().mean(),
         ], 
     [r'Std. Dev. of (\ln P_{t} - \ln P_{t - 1})', 
         regress_data_period[regress_data_period['format'] == 'CDA']['change_log_wprice'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['change_log_wprice'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['change_log_wprice'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['change_log_wprice'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['change_log_wprice'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
         ],
     ['PPI',
         liquidity_cda_period[liquidity_cda_period['format'] == 'CDA']['ppi'].mean(), 
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowR')]['ppi'].mean(),
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowS')]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow30')]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow60')]['ppi'].mean(),
         liquidity_cda_period[(liquidity_cda_period['format'] == 'CDA') & (liquidity_cda_period['round'] <= (num_rounds - prac_rounds) // 2)]['ppi'].mean(), 
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowR') & (liquidity_flow_period['round'] <= (num_rounds - prac_rounds) // 2)]['ppi'].mean(),
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowS') & (liquidity_flow_period['round'] <= (num_rounds - prac_rounds) // 2)]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow30') & (liquidity_flow_period['round'] <= (num_rounds - prac_rounds) // 2)]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow60') & (liquidity_flow_period['round'] <= (num_rounds - prac_rounds) // 2)]['ppi'].mean(),
         liquidity_cda_period[(liquidity_cda_period['format'] == 'CDA') & (liquidity_cda_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(), 
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowR') & (liquidity_flow_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(),
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowS') & (liquidity_flow_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(), 
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow30') & (liquidity_flow_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow60') & (liquidity_flow_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(), 
         ],
     ['Traded Volume (shares)', 
         regress_data_period[regress_data_period['format'] == 'CDA']['traded_volume'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowR']['traded_volume'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['traded_volume'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['traded_volume'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['traded_volume'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
         ],  
     [r'Traded Vol. /Q\_{CE} (%)', 
         100 * regress_data_period[regress_data_period['format'] == 'CDA']['Traded/CE Quantity'].mean(), 
-        100 * regress_data_period[regress_data_period['format'] == 'FlowR']['Traded/CE Quantity'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowS']['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow30']['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow60']['Traded/CE Quantity'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(), 
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(), 
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
         ],
     [r'Filled Contract / Q\_{CE} (%)', 
         100 * regress_data_period[regress_data_period['format'] == 'CDA']['filled_contract'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowR']['filled_contract'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowS']['filled_contract'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow30']['filled_contract'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow60']['filled_contract'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
         ],
     ['Num. of Transactions', 
         int(statistics.mean(transaction_number_cda_full)), None, None,
@@ -404,116 +417,116 @@ summary_market_full = [
         ], 
     ['Time with no FLOW Trans (%)',
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['%no_trans'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['%no_trans'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['%no_trans'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['%no_trans'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
     ],
     ['Info. Effic.: |Price - P_{CE}|', 
         regress_data_interval[(regress_data_interval['format'] == 'CDA')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowR')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowS')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow30')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow60')]['price_deviation'].mean(),
         regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['round'] <= (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['price_deviation'].mean(),
         regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['price_deviation'].mean(),
         ], 
     [r'Alloc. Effic.: \Pi / \Pi_{CE} (x100)', 
         100 * regress_data_period[regress_data_period['format'] == 'CDA']['realized_surplus'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowR']['realized_surplus'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowS']['realized_surplus'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow30']['realized_surplus'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow60']['realized_surplus'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
         ],
     [r'\Pi^{buy} / \Pi^{buy}_{CE} - \Pi^{sell} / \Pi^{sell}_{CE}',
         100 * regress_data_period[regress_data_period['format'] == 'CDA']['gross_norm_diff'].mean(), 
-        100 * regress_data_period[regress_data_period['format'] == 'FlowR']['gross_norm_diff'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowS']['gross_norm_diff'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow30']['gross_norm_diff'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow60']['gross_norm_diff'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(), 
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(), 
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
         ],
 ]
 
 summary_market_short = [
-    [None, 'CDA', 'FlowR', 'FlowS', 'CDA', 'FlowR', 'FlowS', ], 
+    [None, 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'Flow60', ], 
     [None, 'T1 - T20', 'T1 - T20', 'T1 - T20', 'T11 - T20', 'T11 - T20', 'T11 - T20', ], 
     ['Clearing Price', 
         regress_data_interval[(regress_data_interval['format'] == 'CDA')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowR')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowS')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow30')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow60')]['weighted_price'].mean(),
         regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['weighted_price'].mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['weighted_price'].mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['weighted_price'].mean(),
     ],
     ['Std. Dev.', 
         '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'CDA')]['weighted_price'].std()), 
-        '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'FlowR')]['weighted_price'].std()),
-        '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'FlowS')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'Flow30')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['format'] == 'Flow60')]['weighted_price'].std()),
         '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['weighted_price'].std()), 
-        '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['weighted_price'].std()),
-        '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['weighted_price'].std()),
+        '({})'.format(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['weighted_price'].std()),
     ], 
     ['|P_{t} - P_{t - 1}|', 
         regress_data_interval[(regress_data_interval['format'] == 'CDA')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowR')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowS')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow30')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow60')]['price_change'].abs().mean(),
         regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['price_change'].abs().mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['price_change'].abs().mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['price_change'].abs().mean(),
         ], 
     [r'Std. Dev. of (\ln P_{t} - \ln P_{t - 1})', 
         regress_data_period[regress_data_period['format'] == 'CDA']['change_log_wprice'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['change_log_wprice'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['change_log_wprice'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['change_log_wprice'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['change_log_wprice'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['change_log_wprice'].mean(),
         ],
     ['PPI',
         liquidity_cda_period[liquidity_cda_period['format'] == 'CDA']['ppi'].mean(), 
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowR') & (liquidity_flow_period['group'] <= num_groups_flow_low)]['ppi'].mean(),
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowS') & (liquidity_flow_period['group'] > num_groups_flow_low)]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow30') & (liquidity_flow_period['group'] <= num_groups_flow_low)]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow60') & (liquidity_flow_period['group'] > num_groups_flow_low)]['ppi'].mean(),
         liquidity_cda_period[(liquidity_cda_period['format'] == 'CDA') & (liquidity_cda_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(), 
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowR') & (liquidity_flow_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(),
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'FlowS') & (liquidity_flow_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(), 
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow30') & (liquidity_flow_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow60') & (liquidity_flow_period['round'] > (num_rounds - prac_rounds) // 2)]['ppi'].mean(), 
         ],
     ['Traded Volume (shares)', 
         regress_data_period[regress_data_period['format'] == 'CDA']['traded_volume'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowR']['traded_volume'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['traded_volume'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['traded_volume'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['traded_volume'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['traded_volume'].mean(),
         ],  
     [r'Traded Vol. /Q\_{CE} (%)', 
         100 * regress_data_period[regress_data_period['format'] == 'CDA']['Traded/CE Quantity'].mean(), 
-        100 * regress_data_period[regress_data_period['format'] == 'FlowR']['Traded/CE Quantity'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowS']['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow30']['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow60']['Traded/CE Quantity'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(), 
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['Traded/CE Quantity'].mean(),
         ],
     [r'Filled Contract / Q\_{CE} (%)', 
         100 * regress_data_period[regress_data_period['format'] == 'CDA']['filled_contract'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowR']['filled_contract'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowS']['filled_contract'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow30']['filled_contract'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow60']['filled_contract'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['filled_contract'].mean(),
         ],
     ['Num. of Transactions', 
         int(statistics.mean(transaction_number_cda_full)), None, None,
@@ -537,172 +550,172 @@ summary_market_short = [
         ], 
     ['Time with no FLOW Trans (%)',
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['%no_trans'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['%no_trans'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['%no_trans'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['%no_trans'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%no_trans'].mean(),
     ],
     ['Info. Effic.: |Price - P_{CE}|', 
         regress_data_interval[(regress_data_interval['format'] == 'CDA')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowR')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['format'] == 'FlowS')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow30')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['format'] == 'Flow60')]['price_deviation'].mean(),
         regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'CDA')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowR')]['price_deviation'].mean(),
-        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'FlowS')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow30')]['price_deviation'].mean(),
+        regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['format'] == 'Flow60')]['price_deviation'].mean(),
         ], 
     [r'Alloc. Effic.: \Pi / \Pi_{CE} (x100)', 
         100 * regress_data_period[regress_data_period['format'] == 'CDA']['realized_surplus'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowR']['realized_surplus'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowS']['realized_surplus'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow30']['realized_surplus'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow60']['realized_surplus'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean(),
         ],
     [r'\Pi^{buy} / \Pi^{buy}_{CE} - \Pi^{sell} / \Pi^{sell}_{CE}',
         100 * regress_data_period[regress_data_period['format'] == 'CDA']['gross_norm_diff'].mean(), 
-        100 * regress_data_period[regress_data_period['format'] == 'FlowR']['gross_norm_diff'].mean(),
-        100 * regress_data_period[regress_data_period['format'] == 'FlowS']['gross_norm_diff'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow30']['gross_norm_diff'].mean(),
+        100 * regress_data_period[regress_data_period['format'] == 'Flow60']['gross_norm_diff'].mean(),
         100 * regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(), 
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
-        100 * regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
+        100 * regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['gross_norm_diff'].mean(),
         ],
 ]
 
 summary_trader_full = [
-    [None, 'CDA', 'FlowR', 'FlowS', 'CDA', 'FlowR', 'FLOw_H', 'CDA', 'FlowR', 'FlowS', ], 
+    [None, 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'FLOw_H', 'CDA', 'Flow30', 'Flow60', ], 
     [None, 'T1 - T20', 'T1 - T20', 'T1 - T20', 'T1 - T10', 'T1 - T10', 'T1 - T10', 'T11 - T20', 'T11 - T20', 'T11 - T20', ], 
     ['Number of Orders', 
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_num'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_num'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
         ],
     ['Seller', 
         regress_data_period[regress_data_period['format'] == 'CDA']['seller_order_num'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_num'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
     ], 
     ['Buyer', 
         regress_data_period[regress_data_period['format'] == 'CDA']['buyer_order_num'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_num'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
     ], 
     ['Quant. per Order', 
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_quantity'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_quantity'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
     ],
     ['Seller', 
         regress_data_period[regress_data_period['format'] == 'CDA']['seller_order_quantity'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_quantity'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
     ], 
     ['Buyer', 
         regress_data_period[regress_data_period['format'] == 'CDA']['buyer_order_quantity'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_quantity'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
     ], 
     ['Order Price', 
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_price_low'].mean(), 
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_price_high'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
     ],
     ['Seller', 
         regress_data_period[regress_data_period['format'] == 'CDA']['seller_order_price_low'].mean(), 
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_price_high'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
     ],
     ['Buyer', 
         regress_data_period[regress_data_period['format'] == 'CDA']['buyer_order_price_low'].mean(), 
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_price_high'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
     ],
     ['Order Max Rate', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_rate'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
     ],
     ['Seller', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_rate'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
     ],
     ['Buyer', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_rate'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
     ],
     ['%Order at Max Quantity', 
         regress_data_period[regress_data_period['format'] == 'CDA']['%max_quantity/rate_orders'].mean(), None, None, 
@@ -721,215 +734,215 @@ summary_trader_full = [
     ],
     ['%Order at Max Rate', 
         None, 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['%max_quantity/rate_orders'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['%max_quantity/rate_orders'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['%max_quantity/rate_orders'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['%max_quantity/rate_orders'].mean(),
         None,
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
         None,        
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
     ],
     ['Seller', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['%max_quantity/rate_orders_sell'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['%max_quantity/rate_orders_sell'].mean(),
         None,
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
         None,
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
     ],
     ['Buyer', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['%max_quantity/rate_orders_buy'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['%max_quantity/rate_orders_buy'].mean(),
         None,
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] <= (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
     ],
 ]
 
 summary_trader_short = [
-    [None, 'CDA', 'FlowR', 'FlowS', 'CDA', 'FlowR', 'FlowS',], 
+    [None, 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'Flow60',], 
     [None, 'T1 - T20', 'T1 - T20', 'T1 - T20', 'T11 - T20', 'T11 - T20', 'T11 - T20', ], 
     ['Number of Orders', 
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_num'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_num'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_num'].mean(),
         ],
     ['Seller', 
         regress_data_period[regress_data_period['format'] == 'CDA']['seller_order_num'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_num'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_num'].mean(),
     ], 
     ['Buyer', 
         regress_data_period[regress_data_period['format'] == 'CDA']['buyer_order_num'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_num'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_num'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_num'].mean(),
     ], 
     ['Quant. per Order', 
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_quantity'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_quantity'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity'].mean(),
     ],
     ['Seller', 
         regress_data_period[regress_data_period['format'] == 'CDA']['seller_order_quantity'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_quantity'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity'].mean(),
     ], 
     ['Buyer', 
         regress_data_period[regress_data_period['format'] == 'CDA']['buyer_order_quantity'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_quantity'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_quantity'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_quantity'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity'].mean(),
     ], 
 
     ['Quant. per Order (early)', 
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_quantity_initial'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_quantity_initial'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_quantity_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_quantity_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_quantity_initial'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity_initial'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity_initial'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_quantity_initial'].mean(),
     ],
     ['Seller', 
         regress_data_period[regress_data_period['format'] == 'CDA']['seller_order_quantity_initial'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_quantity_initial'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_quantity_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_quantity_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_quantity_initial'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity_initial'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity_initial'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_quantity_initial'].mean(),
     ], 
     ['Buyer', 
         regress_data_period[regress_data_period['format'] == 'CDA']['buyer_order_quantity_initial'].mean(), 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_quantity_initial'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_quantity_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_quantity_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_quantity_initial'].mean(),
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity_initial'].mean(), 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity_initial'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_quantity_initial'].mean(),
     ], 
 
 
     ['Order Price', 
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_price_low'].mean(), 
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_price_high'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high'].mean()],
     ],
     ['Seller', 
         regress_data_period[regress_data_period['format'] == 'CDA']['seller_order_price_low'].mean(), 
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_price_high'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high'].mean()],
     ],
     ['Buyer', 
         regress_data_period[regress_data_period['format'] == 'CDA']['buyer_order_price_low'].mean(), 
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_price_high'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_price_high'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_price_low'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_price_high'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high'].mean()],
     ],
 
     ['Order Price (early)',
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_price_low_initial'].mean(),
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_price_high_initial'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_price_high_initial'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_price_high_initial'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_price_high_initial'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low_initial'].mean(),
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high_initial'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high_initial'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high_initial'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_price_high_initial'].mean()],
     ],
     ['Seller',
         regress_data_period[regress_data_period['format'] == 'CDA']['seller_order_price_low_initial'].mean(), 
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_price_high_initial'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_price_high_initial'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_price_high_initial'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_price_high_initial'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low_initial'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high_initial'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high_initial'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high_initial'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_price_high_initial'].mean()],
     ],
     ['Buyer',
         regress_data_period[regress_data_period['format'] == 'CDA']['buyer_order_price_low_initial'].mean(), 
-        [regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_price_high_initial'].mean()],
-        [regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_price_high_initial'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_price_high_initial'].mean()],
+        [regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_price_low_initial'].mean(), regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_price_high_initial'].mean()],
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low_initial'].mean(), 
-        [regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high_initial'].mean()],
-        [regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high_initial'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high_initial'].mean()],
+        [regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_low_initial'].mean(), regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_price_high_initial'].mean()],
     ],
     
     ['Order Max Rate', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_rate'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate'].mean(),
     ],
     ['Seller', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_rate'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate'].mean(),
     ],
     ['Buyer', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_rate'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_rate'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_rate'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate'].mean(),
     ],
 
     ['Order Max Rate (early)',
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['overall_order_rate_initial'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['overall_order_rate_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_rate_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_rate_initial'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate_initial'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['overall_order_rate_initial'].mean(),
     ],
     ['Seller',
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['seller_order_rate_initial'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['seller_order_rate_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['seller_order_rate_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['seller_order_rate_initial'].mean(),
         None,   
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate_initial'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_order_rate_initial'].mean(),
     ],
     ['Buyer',
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_order_rate_initial'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_order_rate_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_order_rate_initial'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_order_rate_initial'].mean(),
         None,
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate_initial'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate_initial'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_order_rate_initial'].mean(),
     ],
 
     ['%Order at Max Quantity', 
@@ -946,27 +959,27 @@ summary_trader_short = [
     ],
     ['%Order at Max Rate', 
         None, 
-        regress_data_period[regress_data_period['format'] == 'FlowR']['%max_quantity/rate_orders'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['%max_quantity/rate_orders'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['%max_quantity/rate_orders'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['%max_quantity/rate_orders'].mean(),
         None,        
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders'].mean(),
     ],
     ['Seller', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['%max_quantity/rate_orders_sell'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['%max_quantity/rate_orders_sell'].mean(),
         None,
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_sell'].mean(),
     ],
     ['Buyer', 
         None,
-        regress_data_period[regress_data_period['format'] == 'FlowR']['%max_quantity/rate_orders_buy'].mean(),
-        regress_data_period[regress_data_period['format'] == 'FlowS']['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow30']['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[regress_data_period['format'] == 'Flow60']['%max_quantity/rate_orders_buy'].mean(),
         None, 
-        regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
-        regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
+        regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['%max_quantity/rate_orders_buy'].mean(),
     ],
 ]
 
@@ -1032,7 +1045,7 @@ for dummy in block_names[:-1]:
 weights = 'quantity'
 price_dev_model = sm.WLS.from_formula(price_dev_formula, data=regress_data_interval, weights=regress_data_interval[weights])
 price_dev_res = price_dev_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_interval['group']), 'maxlags': 1})
-price_dev_wald = price_dev_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False) 
+price_dev_wald = price_dev_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False) 
 
 
 price_dev_last_formula = 'price_deviation ~ format + round + interval'
@@ -1041,7 +1054,7 @@ for dummy in block_names[:-1]:
 weights = 'quantity'
 price_dev_last_model = sm.WLS.from_formula(price_dev_last_formula, data=regress_data_interval[regress_data_interval['round'] > (num_rounds - prac_rounds) // 2], weights=regress_data_interval[regress_data_interval['round'] > (num_rounds - prac_rounds) // 2][weights])
 price_dev_last_res = price_dev_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_interval[regress_data_interval['round'] > (num_rounds - prac_rounds) // 2]['group']), 'maxlags': 1})
-price_dev_last_wald = price_dev_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+price_dev_last_wald = price_dev_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 # regression for ppi
@@ -1050,7 +1063,7 @@ for dummy in block_names[:-1]:
     ppi_formula += ' + ' + dummy
 ppi_model = sm.OLS.from_formula(ppi_formula, data=regress_data_interval)
 ppi_res = ppi_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_interval['group']), 'maxlags': 1})
-ppi_wald = ppi_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+ppi_wald = ppi_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 ppi_last_formula = 'ppi ~ format + round + interval'
@@ -1058,7 +1071,7 @@ for dummy in block_names[:-1]:
     ppi_last_formula += ' + ' + dummy
 ppi_last_model = sm.OLS.from_formula(ppi_last_formula, data=regress_data_interval[regress_data_interval['round'] > (num_rounds - prac_rounds) // 2])
 ppi_last_res = ppi_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_interval[regress_data_interval['round'] > (num_rounds - prac_rounds) // 2]['group']), 'maxlags': 1})
-ppi_last_wald = ppi_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+ppi_last_wald = ppi_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 
@@ -1069,14 +1082,14 @@ for dummy in block_names[:-1]:
     price_vol_formula += ' + ' + dummy
 price_vol_model = sm.OLS.from_formula(price_vol_formula, data=regress_data_period)
 price_vol_res = price_vol_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period[regress_data_period['change_log_wprice'].notna()]['group']), 'maxlags': 1})
-price_vol_wald = price_vol_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+price_vol_wald = price_vol_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 price_vol_last_formula = 'change_log_wprice ~ format + round'
 for dummy in block_names[:-1]:
     price_vol_last_formula += ' + ' + dummy
 price_vol_last_model = sm.OLS.from_formula(price_vol_last_formula, data=regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2])
 price_vol_last_res = price_vol_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period[(regress_data_period['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_period['change_log_wprice'].notna())]['group']), 'maxlags': 1})
-price_vol_last_wald = price_vol_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+price_vol_last_wald = price_vol_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 # use absolute price change
@@ -1086,7 +1099,7 @@ for dummy in block_names[:-1]:
 weights = 'quantity'
 price_vol_abs_model = sm.WLS.from_formula(price_vol_abs_formula, data=regress_data_interval, weights=regress_data_interval[weights])
 price_vol_abs_res = price_vol_abs_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_interval[regress_data_interval['price_change'].notna()]['group']), 'maxlags': 1})
-price_vol_abs_wald = price_vol_abs_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+price_vol_abs_wald = price_vol_abs_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 price_vol_abs_last_formula = 'np.abs(price_change) ~ format + round + interval'
 for dummy in block_names[:-1]:
@@ -1094,7 +1107,7 @@ for dummy in block_names[:-1]:
 weights = 'quantity'
 price_vol_abs_last_model = sm.WLS.from_formula(price_vol_abs_last_formula, data=regress_data_interval[regress_data_interval['round'] > (num_rounds - prac_rounds) // 2], weights=regress_data_interval[regress_data_interval['round'] > (num_rounds - prac_rounds) // 2][weights])
 price_vol_abs_last_res = price_vol_abs_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_interval[(regress_data_interval['round'] > (num_rounds - prac_rounds) // 2) & (regress_data_interval['price_change'].notna())]['group']), 'maxlags': 1})
-price_vol_abs_last_wald = price_vol_abs_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+price_vol_abs_last_wald = price_vol_abs_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 # regression for realized surplus 
@@ -1103,14 +1116,14 @@ for dummy in block_names[:-1]:
     surplus_formula += ' + ' + dummy
 surplus_model = sm.OLS.from_formula(surplus_formula, data=regress_data_period)
 surplus_res = surplus_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period['group']), 'maxlags': 1})
-surplus_wald = surplus_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+surplus_wald = surplus_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 surplus_last_formula = 'realized_surplus ~ format + round'
 for dummy in block_names[:-1]:
     surplus_last_formula += ' + ' + dummy
 surplus_last_model = sm.OLS.from_formula(surplus_last_formula, data=regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2])
 surplus_last_res = surplus_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2]['group']), 'maxlags': 1})
-surplus_last_wald = surplus_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+surplus_last_wald = surplus_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 # regression for traded volume
@@ -1119,14 +1132,14 @@ for dummy in block_names[:-1]:
     volume_formula += ' + ' + dummy
 volume_model = sm.OLS.from_formula(volume_formula, data=regress_data_period)
 volume_res = volume_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period['group']), 'maxlags': 1})
-volume_wald = volume_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+volume_wald = volume_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 volume_last_formula = 'traded_volume ~ format + round'
 for dummy in block_names[:-1]:
     volume_last_formula += ' + ' + dummy
 volume_last_model = sm.OLS.from_formula(volume_last_formula, data=regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2])
 volume_last_res = volume_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2]['group']), 'maxlags': 1})
-volume_last_wald = volume_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+volume_last_wald = volume_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 # regression for filled CE quantity
@@ -1135,14 +1148,14 @@ for dummy in block_names[:-1]:
     filled_volume_formula += ' + ' + dummy
 filled_volume_model = sm.OLS.from_formula(filled_volume_formula, data=regress_data_period)
 filled_volume_res = filled_volume_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period['group']), 'maxlags': 1})
-filled_volume_wald = filled_volume_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+filled_volume_wald = filled_volume_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 filled_volume_last_formula = 'filled_contract ~ format + round'
 for dummy in block_names[:-1]:
     filled_volume_last_formula += ' + ' + dummy
 filled_volume_last_model = sm.OLS.from_formula(filled_volume_last_formula, data=regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2])
 filled_volume_last_res = filled_volume_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2]['group']), 'maxlags': 1})
-filled_volume_last_wald = filled_volume_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+filled_volume_last_wald = filled_volume_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 # regression for number of orders
@@ -1151,14 +1164,14 @@ for dummy in block_names[:-1]:
     order_number_formula += ' + ' + dummy
 order_number_model = sm.OLS.from_formula(order_number_formula, data=regress_data_period)
 order_number_res = order_number_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period['group']), 'maxlags': 1})
-order_number_wald = order_number_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+order_number_wald = order_number_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 order_number_last_formula = 'overall_order_num ~ format + round'
 for dummy in block_names[:-1]:
     order_number_last_formula += ' + ' + dummy
 order_number_last_model = sm.OLS.from_formula(order_number_last_formula, data=regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2])
 order_number_last_res = order_number_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2]['group']), 'maxlags': 1})
-order_number_last_wald = order_number_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+order_number_last_wald = order_number_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 # regression for order quantity
@@ -1167,14 +1180,14 @@ for dummy in block_names[:-1]:
     order_size_formula += ' + ' + dummy
 order_size_model = sm.OLS.from_formula(order_size_formula, data=regress_data_period)
 order_size_res = order_size_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period['group']), 'maxlags': 1})
-order_size_wald = order_size_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+order_size_wald = order_size_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 order_size_last_formula = 'overall_order_quantity ~ format + round'
 for dummy in block_names[:-1]:
     order_size_last_formula += ' + ' + dummy
 order_size_last_model = sm.OLS.from_formula(order_size_last_formula, data=regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2])
 order_size_last_res = order_size_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2]['group']), 'maxlags': 1})
-order_size_last_wald = order_size_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+order_size_last_wald = order_size_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 # regression for gross diff
@@ -1183,14 +1196,14 @@ for dummy in block_names[:-1]:
     gross_diff_formula += ' + ' + dummy
 gross_diff_model = sm.OLS.from_formula(gross_diff_formula, data=regress_data_period)
 gross_diff_res = gross_diff_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period['group']), 'maxlags': 1})
-gross_diff_wald = gross_diff_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+gross_diff_wald = gross_diff_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 gross_diff_last_formula = 'gross_diff ~ format + round'
 for dummy in block_names[:-1]:
     gross_diff_last_formula += ' + ' + dummy
 gross_diff_last_model = sm.OLS.from_formula(gross_diff_last_formula, data=regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2])
 gross_diff_last_res = gross_diff_last_model.fit(cov_type='hac-panel', cov_kwds={'groups': np.asarray(regress_data_period[regress_data_period['round'] > (num_rounds - prac_rounds) // 2]['group']), 'maxlags': 1})
-gross_diff_last_wald = gross_diff_last_res.wald_test('format[T.FlowR] - format[T.FlowS] = 0', scalar=False)
+gross_diff_last_wald = gross_diff_last_res.wald_test('format[T.Flow30] - format[T.Flow60] = 0', scalar=False)
 
 
 model_choice_price_vol = [
@@ -1275,12 +1288,12 @@ with open(os.path.join(tables_dir, 'efficiency_regression_table.tex'), 'w') as f
 
 
 cumsum_cda_mean = regress_data_interval[regress_data_interval['format'] == 'CDA'].groupby(['round', 'interval'])['%cumsum'].mean()
-cumsum_flow_r_mean = regress_data_interval[regress_data_interval['format'] == 'FlowR'].groupby(['round', 'interval'])['%cumsum'].mean()
-cumsum_flow_s_mean = regress_data_interval[regress_data_interval['format'] == 'FlowS'].groupby(['round', 'interval'])['%cumsum'].mean()
+cumsum_flow_r_mean = regress_data_interval[regress_data_interval['format'] == 'Flow30'].groupby(['round', 'interval'])['%cumsum'].mean()
+cumsum_flow_s_mean = regress_data_interval[regress_data_interval['format'] == 'Flow60'].groupby(['round', 'interval'])['%cumsum'].mean()
 
 cumsum_cda_mean_agg = regress_data_interval[regress_data_interval['format'] == 'CDA'].groupby(['interval'])['%cumsum'].mean()
-cumsum_flow_r_mean_agg = regress_data_interval[regress_data_interval['format'] == 'FlowR'].groupby(['interval'])['%cumsum'].mean()
-cumsum_flow_s_mean_agg = regress_data_interval[regress_data_interval['format'] == 'FlowS'].groupby(['interval'])['%cumsum'].mean()
+cumsum_flow_r_mean_agg = regress_data_interval[regress_data_interval['format'] == 'Flow30'].groupby(['interval'])['%cumsum'].mean()
+cumsum_flow_s_mean_agg = regress_data_interval[regress_data_interval['format'] == 'Flow60'].groupby(['interval'])['%cumsum'].mean()
 
 plot_df = pd.DataFrame(
     {
@@ -1322,10 +1335,10 @@ cumulative_gross_flow_s_sell = np.arange(len(sorted_gross_flow_s_sell)) / len(so
 
 plt.plot(sorted_gross_cda_buy, cumulative_gross_cda_buy, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_gross_cda_sell, cumulative_gross_cda_sell, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_gross_flow_r_buy, cumulative_gross_flow_r_buy, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_gross_flow_r_sell, cumulative_gross_flow_r_sell, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_gross_flow_s_buy, cumulative_gross_flow_s_buy, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_gross_flow_s_sell, cumulative_gross_flow_s_sell, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.plot(sorted_gross_flow_r_buy, cumulative_gross_flow_r_buy, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_gross_flow_r_sell, cumulative_gross_flow_r_sell, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_gross_flow_s_buy, cumulative_gross_flow_s_buy, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_gross_flow_s_sell, cumulative_gross_flow_s_sell, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of Gross Profits')
 plt.xlabel('Gross Profits')
 plt.ylabel('Cumulative Probability')
@@ -1349,15 +1362,15 @@ cumulative_excess_flow_s_sell = np.arange(len(sorted_excess_flow_s_sell)) / len(
 
 plt.plot(sorted_excess_cda_buy, cumulative_excess_cda_buy, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_excess_cda_sell, cumulative_excess_cda_sell, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_excess_flow_r_buy, cumulative_excess_flow_r_buy, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_excess_flow_r_sell, cumulative_excess_flow_r_sell, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_excess_flow_s_buy, cumulative_excess_flow_s_buy, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_excess_flow_s_sell, cumulative_excess_flow_s_sell, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.plot(sorted_excess_flow_r_buy, cumulative_excess_flow_r_buy, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_excess_flow_r_sell, cumulative_excess_flow_r_sell, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_excess_flow_s_buy, cumulative_excess_flow_s_buy, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_excess_flow_s_sell, cumulative_excess_flow_s_sell, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of Excess Profits')
 plt.xlabel('Excess Profits')
 plt.ylabel('Cumulative Probability')
 plt.grid(True)
-plt.legend(loc='lower right')
+plt.legend(loc='upper left')
 plt.savefig(os.path.join(figures_dir, 'excess_profits_cdf.png'))
 plt.close()
 
@@ -1379,15 +1392,15 @@ cumulative_gross_flow_s_sell_last = np.arange(len(sorted_gross_flow_s_sell_last)
 
 plt.plot(sorted_gross_cda_buy_last, cumulative_gross_cda_buy_last, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_gross_cda_sell_last, cumulative_gross_cda_sell_last, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_gross_flow_r_buy_last, cumulative_gross_flow_r_buy_last, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_gross_flow_r_sell_last, cumulative_gross_flow_r_sell_last, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_gross_flow_s_buy_last, cumulative_gross_flow_s_buy_last, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_gross_flow_s_sell_last, cumulative_gross_flow_s_sell_last, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.plot(sorted_gross_flow_r_buy_last, cumulative_gross_flow_r_buy_last, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_gross_flow_r_sell_last, cumulative_gross_flow_r_sell_last, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_gross_flow_s_buy_last, cumulative_gross_flow_s_buy_last, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_gross_flow_s_sell_last, cumulative_gross_flow_s_sell_last, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of Gross Profits')
 plt.xlabel('Gross Profits')
 plt.ylabel('Cumulative Probability')
 plt.grid(True)
-plt.legend(loc='lower right')
+plt.legend(loc='upper left')
 plt.savefig(os.path.join(figures_dir, 'gross_profits_last_cdf.png'))
 plt.close()
 
@@ -1406,15 +1419,15 @@ cumulative_excess_flow_s_sell_last = np.arange(len(sorted_excess_flow_s_sell_las
 
 plt.plot(sorted_excess_cda_buy_last, cumulative_excess_cda_buy_last, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_excess_cda_sell_last, cumulative_excess_cda_sell_last, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_excess_flow_r_buy_last, cumulative_excess_flow_r_buy_last, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_excess_flow_r_sell_last, cumulative_excess_flow_r_sell_last, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_excess_flow_s_buy_last, cumulative_excess_flow_s_buy_last, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_excess_flow_s_sell_last, cumulative_excess_flow_s_sell_last, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.plot(sorted_excess_flow_r_buy_last, cumulative_excess_flow_r_buy_last, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_excess_flow_r_sell_last, cumulative_excess_flow_r_sell_last, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_excess_flow_s_buy_last, cumulative_excess_flow_s_buy_last, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_excess_flow_s_sell_last, cumulative_excess_flow_s_sell_last, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of Excess Profits')
 plt.xlabel('Excess Profits')
 plt.ylabel('Cumulative Probability')
 plt.grid(True)
-plt.legend(loc='lower right')
+plt.legend(loc='upper left')
 plt.savefig(os.path.join(figures_dir, 'excess_profits_last_cdf.png'))
 plt.close()
 
@@ -1425,22 +1438,22 @@ sorted_gross_cda_buy_group = np.sort(regress_data_period[regress_data_period['fo
 cumulative_gross_cda_buy_group = np.arange(len(sorted_gross_cda_buy_group)) / len(sorted_gross_cda_buy_group)
 sorted_gross_cda_sell_group = np.sort(regress_data_period[regress_data_period['format'] == 'CDA']['seller_realized_surplus'].tolist())
 cumulative_gross_cda_sell_group = np.arange(len(sorted_gross_cda_sell_group)) / len(sorted_gross_cda_sell_group)
-sorted_gross_flow_r_buy_group = np.sort(regress_data_period[regress_data_period['format'] == 'FlowR']['buyer_realized_surplus'].tolist())
+sorted_gross_flow_r_buy_group = np.sort(regress_data_period[regress_data_period['format'] == 'Flow30']['buyer_realized_surplus'].tolist())
 cumulative_gross_flow_r_buy_group = np.arange(len(sorted_gross_flow_r_buy_group)) / len(sorted_gross_flow_r_buy_group)
-sorted_gross_flow_r_sell_group = np.sort(regress_data_period[regress_data_period['format'] == 'FlowR']['seller_realized_surplus'].tolist())
+sorted_gross_flow_r_sell_group = np.sort(regress_data_period[regress_data_period['format'] == 'Flow30']['seller_realized_surplus'].tolist())
 cumulative_gross_flow_r_sell_group = np.arange(len(sorted_gross_flow_r_sell_group)) / len(sorted_gross_flow_r_sell_group)
-sorted_gross_flow_s_buy_group = np.sort(regress_data_period[regress_data_period['format'] == 'FlowS']['buyer_realized_surplus'].tolist())
+sorted_gross_flow_s_buy_group = np.sort(regress_data_period[regress_data_period['format'] == 'Flow60']['buyer_realized_surplus'].tolist())
 cumulative_gross_flow_s_buy_group = np.arange(len(sorted_gross_flow_s_buy_group)) / len(sorted_gross_flow_s_buy_group)
-sorted_gross_flow_s_sell_group = np.sort(regress_data_period[regress_data_period['format'] == 'FlowS']['seller_realized_surplus'].tolist())
+sorted_gross_flow_s_sell_group = np.sort(regress_data_period[regress_data_period['format'] == 'Flow60']['seller_realized_surplus'].tolist())
 cumulative_gross_flow_s_sell_group = np.arange(len(sorted_gross_flow_s_sell_group)) / len(sorted_gross_flow_s_sell_group)   
 
 
 plt.plot(sorted_gross_cda_buy_group, cumulative_gross_cda_buy_group, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA buyer')
 plt.plot(sorted_gross_cda_sell_group, cumulative_gross_cda_sell_group, marker=',', linestyle='solid', color=(128/255, 0,  128/255), markersize=5, label='CDA seller')
-plt.plot(sorted_gross_flow_r_buy_group, cumulative_gross_flow_r_buy_group, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR buyer')
-plt.plot(sorted_gross_flow_r_sell_group, cumulative_gross_flow_r_sell_group, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR seller')
-plt.plot(sorted_gross_flow_s_buy_group, cumulative_gross_flow_s_buy_group, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS buyer')
-plt.plot(sorted_gross_flow_s_sell_group, cumulative_gross_flow_s_sell_group, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS seller')
+plt.plot(sorted_gross_flow_r_buy_group, cumulative_gross_flow_r_buy_group, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 buyer')
+plt.plot(sorted_gross_flow_r_sell_group, cumulative_gross_flow_r_sell_group, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 seller')
+plt.plot(sorted_gross_flow_s_buy_group, cumulative_gross_flow_s_buy_group, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 buyer')
+plt.plot(sorted_gross_flow_s_sell_group, cumulative_gross_flow_s_sell_group, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 seller')
 plt.title('CDF of Normalized Gross Profits')
 plt.xlabel('Gross / CE Profits')
 plt.ylabel('Cumulative Probability')
@@ -1454,21 +1467,21 @@ sorted_gross_cda_buy_group_last = np.sort(regress_data_period[(regress_data_peri
 cumulative_gross_cda_buy_group_last = np.arange(len(sorted_gross_cda_buy_group_last)) / len(sorted_gross_cda_buy_group_last)
 sorted_gross_cda_sell_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_realized_surplus'].tolist())
 cumulative_gross_cda_sell_group_last = np.arange(len(sorted_gross_cda_sell_group_last)) / len(sorted_gross_cda_sell_group_last)
-sorted_gross_flow_r_buy_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_realized_surplus'].tolist())
+sorted_gross_flow_r_buy_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_realized_surplus'].tolist())
 cumulative_gross_flow_r_buy_group_last = np.arange(len(sorted_gross_flow_r_buy_group_last)) / len(sorted_gross_flow_r_buy_group_last)
-sorted_gross_flow_r_sell_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'FlowR') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_realized_surplus'].tolist())
+sorted_gross_flow_r_sell_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_realized_surplus'].tolist())
 cumulative_gross_flow_r_sell_group_last = np.arange(len(sorted_gross_flow_r_sell_group_last)) / len(sorted_gross_flow_r_sell_group_last)
-sorted_gross_flow_s_buy_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_realized_surplus'].tolist())
+sorted_gross_flow_s_buy_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['buyer_realized_surplus'].tolist())
 cumulative_gross_flow_s_buy_group_last = np.arange(len(sorted_gross_flow_s_buy_group_last)) / len(sorted_gross_flow_s_buy_group_last)
-sorted_gross_flow_s_sell_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'FlowS') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_realized_surplus'].tolist())
+sorted_gross_flow_s_sell_group_last = np.sort(regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['round'] > (num_rounds - prac_rounds) // 2)]['seller_realized_surplus'].tolist())
 cumulative_gross_flow_s_sell_group_last = np.arange(len(sorted_gross_flow_s_sell_group_last)) / len(sorted_gross_flow_s_sell_group_last)
 
 plt.plot(sorted_gross_cda_buy_group_last, cumulative_gross_cda_buy_group_last, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_gross_cda_sell_group_last, cumulative_gross_cda_sell_group_last, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_gross_flow_r_buy_group_last, cumulative_gross_flow_r_buy_group_last, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_gross_flow_r_sell_group_last, cumulative_gross_flow_r_sell_group_last, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_gross_flow_s_buy_group_last, cumulative_gross_flow_s_buy_group_last, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_gross_flow_s_sell_group_last, cumulative_gross_flow_s_sell_group_last, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.plot(sorted_gross_flow_r_buy_group_last, cumulative_gross_flow_r_buy_group_last, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_gross_flow_r_sell_group_last, cumulative_gross_flow_r_sell_group_last, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_gross_flow_s_buy_group_last, cumulative_gross_flow_s_buy_group_last, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_gross_flow_s_sell_group_last, cumulative_gross_flow_s_sell_group_last, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of Normalized Gross Profits')
 plt.xlabel('Gross / CE Profits')
 plt.ylabel('Cumulative Probability')
@@ -1481,14 +1494,14 @@ plt.close()
 # all periods
 sorted_excess_cda_group = np.sort(regress_data_period[regress_data_period['format'] == 'CDA']['gross_diff'].tolist())
 cumulative_excess_cda_group = np.arange(len(sorted_excess_cda_group)) / len(sorted_excess_cda_group)
-sorted_excess_flow_r_group = np.sort(regress_data_period[regress_data_period['format'] == 'FlowR']['gross_diff'].tolist())
+sorted_excess_flow_r_group = np.sort(regress_data_period[regress_data_period['format'] == 'Flow30']['gross_diff'].tolist())
 cumulative_excess_flow_r_group = np.arange(len(sorted_excess_flow_r_group)) / len(sorted_excess_flow_r_group)
-sorted_excess_flow_s_group = np.sort(regress_data_period[regress_data_period['format'] == 'FlowS']['gross_diff'].tolist())
+sorted_excess_flow_s_group = np.sort(regress_data_period[regress_data_period['format'] == 'Flow60']['gross_diff'].tolist())
 cumulative_excess_flow_s_group = np.arange(len(sorted_excess_flow_s_group)) / len(sorted_excess_flow_s_group)
 
 plt.plot(sorted_excess_cda_group, cumulative_excess_cda_group, marker=',', linestyle='solid', markersize=5, label='CDA')
-plt.plot(sorted_excess_flow_r_group, cumulative_excess_flow_r_group, marker=',', linestyle='dashed', markersize=5, label='FlowR')
-plt.plot(sorted_excess_flow_s_group, cumulative_excess_flow_s_group, marker=',', linestyle='dotted', markersize=5, label='FlowS')
+plt.plot(sorted_excess_flow_r_group, cumulative_excess_flow_r_group, marker=',', linestyle='dashed', markersize=5, label='Flow30')
+plt.plot(sorted_excess_flow_s_group, cumulative_excess_flow_s_group, marker=',', linestyle='dotted', markersize=5, label='Flow60')
 
 plt.title('CDF of Normalized Gross Profits')
 plt.xlabel('Gross - CE Profits (buy - sell)')
@@ -1503,10 +1516,10 @@ plt.close()
 
 plt.plot(sorted_executed_percent_buy_cda_full, cumulative_prob_executed_percent_buy_cda_full, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_executed_percent_sell_cda_full, cumulative_prob_executed_percent_sell_cda_full, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_executed_percent_buy_flow_r_full, cumulative_prob_executed_percent_buy_flow_r_full, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_executed_percent_sell_flow_r_full, cumulative_prob_executed_percent_sell_flow_r_full, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_executed_percent_buy_flow_s_full, cumulative_prob_executed_percent_buy_flow_s_full, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_executed_percent_sell_flow_s_full, cumulative_prob_executed_percent_sell_flow_s_full, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.plot(sorted_executed_percent_buy_flow_r_full, cumulative_prob_executed_percent_buy_flow_r_full, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_executed_percent_sell_flow_r_full, cumulative_prob_executed_percent_sell_flow_r_full, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_executed_percent_buy_flow_s_full, cumulative_prob_executed_percent_buy_flow_s_full, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_executed_percent_sell_flow_s_full, cumulative_prob_executed_percent_sell_flow_s_full, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of Executed Order Volume (T1 - T20)')
 plt.xlabel('%Executed Order Volume')
 plt.ylabel('Cumulative Probability')
@@ -1516,10 +1529,10 @@ plt.close()
 
 plt.plot(sorted_executed_percent_buy_cda_first, cumulative_prob_executed_percent_buy_cda_first, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_executed_percent_sell_cda_first, cumulative_prob_executed_percent_sell_cda_first, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_executed_percent_buy_flow_r_first, cumulative_prob_executed_percent_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_executed_percent_sell_flow_r_first, cumulative_prob_executed_percent_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_executed_percent_buy_flow_s_first, cumulative_prob_executed_percent_buy_flow_s_first, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_executed_percent_sell_flow_s_first, cumulative_prob_executed_percent_sell_flow_s_first, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.plot(sorted_executed_percent_buy_flow_r_first, cumulative_prob_executed_percent_buy_flow_r_first, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_executed_percent_sell_flow_r_first, cumulative_prob_executed_percent_sell_flow_r_first, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_executed_percent_buy_flow_s_first, cumulative_prob_executed_percent_buy_flow_s_first, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_executed_percent_sell_flow_s_first, cumulative_prob_executed_percent_sell_flow_s_first, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of Executed Order Volume (T1 - T10)')
 plt.xlabel('%Executed Order Volume')
 plt.ylabel('Cumulative Probability')
@@ -1529,10 +1542,10 @@ plt.close()
 
 plt.plot(sorted_executed_percent_buy_cda_last, cumulative_prob_executed_percent_buy_cda_last, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
 plt.plot(sorted_executed_percent_sell_cda_last, cumulative_prob_executed_percent_sell_cda_last, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_executed_percent_buy_flow_r_last, cumulative_prob_executed_percent_buy_flow_r_last, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='FlowR Buyer')
-plt.plot(sorted_executed_percent_sell_flow_r_last, cumulative_prob_executed_percent_sell_flow_r_last, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='FlowR Seller')
-plt.plot(sorted_executed_percent_buy_flow_s_last, cumulative_prob_executed_percent_buy_flow_s_last, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='FlowS Buyer')
-plt.plot(sorted_executed_percent_sell_flow_s_last, cumulative_prob_executed_percent_sell_flow_s_last, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='FlowS Seller')
+plt.plot(sorted_executed_percent_buy_flow_r_last, cumulative_prob_executed_percent_buy_flow_r_last, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
+plt.plot(sorted_executed_percent_sell_flow_r_last, cumulative_prob_executed_percent_sell_flow_r_last, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
+plt.plot(sorted_executed_percent_buy_flow_s_last, cumulative_prob_executed_percent_buy_flow_s_last, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
+plt.plot(sorted_executed_percent_sell_flow_s_last, cumulative_prob_executed_percent_sell_flow_s_last, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
 plt.title('CDF of Executed Order Volume (T11 - T20)')
 plt.xlabel('%Executed Order Volume')
 plt.ylabel('Cumulative Probability')
@@ -1550,29 +1563,29 @@ compress_df_cda['timestamp'] = compress_df_cda['timestamp'].replace(0, round_len
 compress_df_cda['mean_cumulative_quantity_percent'] = compress_df_cda['mean_cumulative_quantity'] / compress_df_cda['ce_quantity']
 summary_cda = compress_df_cda.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
 
-compress_df_flow_r = data_groups_mkt_flow[(data_groups_mkt_flow['group_id'] == 1)].copy()
-compress_df_flow_r['timestamp'] = compress_df_flow_r['timestamp'] % round_length
-compress_df_flow_r['timestamp'] = compress_df_flow_r['timestamp'].replace(0, round_length)
-compress_df_flow_r['mean_cumulative_quantity_percent'] = compress_df_flow_r['mean_cumulative_quantity'] / compress_df_flow_r['ce_quantity']
-summary_flow_r = compress_df_flow_r.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
+compress_df_flow30 = data_groups_mkt_flow[(data_groups_mkt_flow['group_id'] == 1)].copy()
+compress_df_flow30['timestamp'] = compress_df_flow30['timestamp'] % round_length
+compress_df_flow30['timestamp'] = compress_df_flow30['timestamp'].replace(0, round_length)
+compress_df_flow30['mean_cumulative_quantity_percent'] = compress_df_flow30['mean_cumulative_quantity'] / compress_df_flow30['ce_quantity']
+summary_flow_r = compress_df_flow30.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
 
-compress_df_flow_s = data_groups_mkt_flow[(data_groups_mkt_flow['group_id'] == 6)].copy()
-compress_df_flow_s['timestamp'] = compress_df_flow_s['timestamp'] % round_length
-compress_df_flow_s['timestamp'] = compress_df_flow_s['timestamp'].replace(0, round_length)
-compress_df_flow_s['mean_cumulative_quantity_percent'] = compress_df_flow_s['mean_cumulative_quantity'] / compress_df_flow_s['ce_quantity']
-summary_flow_s = compress_df_flow_s.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
+compress_df_flow60 = data_groups_mkt_flow[(data_groups_mkt_flow['group_id'] == 6)].copy()
+compress_df_flow60['timestamp'] = compress_df_flow60['timestamp'] % round_length
+compress_df_flow60['timestamp'] = compress_df_flow60['timestamp'].replace(0, round_length)
+compress_df_flow60['mean_cumulative_quantity_percent'] = compress_df_flow60['mean_cumulative_quantity'] / compress_df_flow60['ce_quantity']
+summary_flow_s = compress_df_flow60.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
 
 plt.figure(figsize=(8, 5))
 plt.plot(summary_cda['timestamp'], summary_cda['mean_cumulative_quantity_percent'], linestyle='solid', c='green', label='CDA')
-plt.plot(summary_flow_r['timestamp'], summary_flow_r['mean_cumulative_quantity_percent'], c='green', linestyle='dashed', label='FlowR')
-plt.plot(summary_flow_s['timestamp'], summary_flow_s['mean_cumulative_quantity_percent'], c='green', linestyle='dotted', label='FlowS')
+plt.plot(summary_flow_r['timestamp'], summary_flow_r['mean_cumulative_quantity_percent'], c='green', linestyle='dashed', label='Flow30')
+plt.plot(summary_flow_s['timestamp'], summary_flow_s['mean_cumulative_quantity_percent'], c='green', linestyle='dotted', label='Flow60')
 plt.hlines(y=1, xmin=1, xmax=round_length, colors='plum', linestyles='--')
 plt.xticks(np.arange(1, round_length + 2, 10), np.arange(0, round_length + 1, 10))
 plt.xlabel('Time')
 plt.ylabel('Percent')
 plt.ylim(0, 1.1)
-plt.legend()
-# plt.title('FlowS Cumulative / CE Quantity vs Time')
+plt.legend(loc='lower right')
+# plt.title('Flow60 Cumulative / CE Quantity vs Time')
 plt.savefig(os.path.join(figures_dir, 'groups_cumsum_compress_all.png'))
 plt.close()
 
