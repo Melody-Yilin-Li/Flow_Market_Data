@@ -47,7 +47,7 @@ regress_cda_ind = pd.DataFrame()
 
 # df for market clearing_prices and clearing_rates/quantities for all groups 
 # create a list of dfs to be merged 
-cda_ind = []
+list_individual_cda = []
 
 
 clearing_prices = []
@@ -398,18 +398,18 @@ for g in range(1, num_groups_cda + 1):
     #     df[(df['timestamp'] % (round_length - leave_out_seconds) == 0) & (df['timestamp'] // (round_length - leave_out_seconds) > ((num_periods - prac_periods) // 2)) & (df['projected_profit_{}'.format(g)] < 0)]['projected_profit_{}'.format(g)].sum(), 
     #     )
 
-    cda_ind.append(df)
+    list_individual_cda.append(df)
     
-data_cda_ind = reduce(lambda left, right:    # Merge DataFrames in list
+individual_per_second_cda = reduce(lambda left, right:    # Merge DataFrames in list
                      pd.merge(left , right,
                               on = ['timestamp', 'id_in_group', 'direction', 'ce_price', 'ce_quantity',],
                             #   suffixes=tuple(['_{}'.format(i) for i in range(1, num_groups_cda + 1)]),
                               ),
-                     cda_ind) 
+                     list_individual_cda) 
 
 # aggregate the individual data by direction
 aggregate = {q: 'sum' for q in projected_profits + fill_quantities}
-data_cda_contract_by_direction = data_cda_ind[data_cda_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby(['timestamp', 'direction'], as_index=False).agg(aggregate)
+data_cda_contract_by_direction = individual_per_second_cda[individual_per_second_cda['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby(['timestamp', 'direction'], as_index=False).agg(aggregate)
 data_cda_contract_by_direction['ce_profits'] = 0
 data_cda_contract_by_direction['period'] = data_cda_contract_by_direction['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
 for ind, row in data_cda_contract_by_direction.iterrows():
@@ -420,12 +420,12 @@ for ind, row in data_cda_contract_by_direction.iterrows():
 for g in range(1, len(projected_profits) + 1): 
     data_cda_contract_by_direction['realized_surplus_{}'.format(g)] = data_cda_contract_by_direction[projected_profits[g - 1]] / data_cda_contract_by_direction['ce_profits']
 data_cda_contract_by_direction = data_cda_contract_by_direction.drop('timestamp', axis = 1)
-# print(data_cda_contract_by_direction[fill_quantities], data_cda_contract_by_direction.columns, data_cda_ind.columns)
-# print(cda_ind, data_cda_ind, data_cda_ind.columns)
+# print(data_cda_contract_by_direction[fill_quantities], data_cda_contract_by_direction.columns, individual_per_second_cda.columns)
+# print(list_individual_cda, individual_per_second_cda, individual_per_second_cda.columns)
 # exit(0)
 mean_cda = []
 for g in range(1, num_groups_cda + 1):
-    mean_df = data_cda_ind.groupby(['timestamp'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g)]].apply(lambda x: x.abs().mean())
+    mean_df = individual_per_second_cda.groupby(['timestamp'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g)]].apply(lambda x: x.abs().mean())
     mean_cda.append(mean_df)
 
 data_mean_cda = reduce(
@@ -436,7 +436,7 @@ data_mean_cda = reduce(
 
 mean_cda_by_direction = []
 for g in range(1, num_groups_cda + 1):
-    mean_df_by_direction = data_cda_ind.groupby(['timestamp', 'direction'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g)]].apply(lambda x: x.abs().mean())
+    mean_df_by_direction = individual_per_second_cda.groupby(['timestamp', 'direction'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g)]].apply(lambda x: x.abs().mean())
     mean_cda_by_direction.append(mean_df_by_direction)
 
 data_mean_cda_by_direction = reduce(
@@ -447,7 +447,7 @@ data_mean_cda_by_direction = reduce(
 
 sum_cda_by_direction = []
 for g in range(1, num_groups_cda + 1):
-    sum_df_by_direction = data_cda_ind.groupby(['timestamp', 'direction'], as_index=False)['projected_profit_{}'.format(g)].apply(lambda x: x.abs().sum())
+    sum_df_by_direction = individual_per_second_cda.groupby(['timestamp', 'direction'], as_index=False)['projected_profit_{}'.format(g)].apply(lambda x: x.abs().sum())
     sum_cda_by_direction.append(sum_df_by_direction)
 
 data_sum_cda_by_direction = reduce(
@@ -520,8 +520,8 @@ mean_end_of_period_profits_cda_last10 = end_of_period_profits_cda[end_of_period_
 mean_end_of_period_profits_cda_last10['mean'] = mean_end_of_period_profits_cda_last10[projected_profits].mean(axis=1)
 # print('All 20 periods', mean_end_of_period_profits_cda, '\nLast 10 periods\n', mean_end_of_period_profits_cda_last10)
 
-data_cda_ind[in_market_percents] = data_cda_ind[in_market_percents].abs()
-individual_agg_data_cda = data_cda_ind[data_cda_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby('timestamp', as_index=False)[projected_profits + in_market_percents + realized_surpluses].mean()
+individual_per_second_cda[in_market_percents] = individual_per_second_cda[in_market_percents].abs()
+individual_agg_data_cda = individual_per_second_cda[individual_per_second_cda['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby('timestamp', as_index=False)[projected_profits + in_market_percents + realized_surpluses].mean()
 
 
 # average projected profit at group level 
@@ -540,7 +540,7 @@ plt.close()
 
 
 summary_cda_by_direction = data_cda_contract_by_direction
-summary_cda_ind_by_direction = data_cda_ind[data_cda_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0][projected_profits + ['ind_ce_profit_1'] + excess_profits + ['direction']].reset_index(drop=True)
+summary_cda_ind_by_direction = individual_per_second_cda[individual_per_second_cda['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0][projected_profits + ['ind_ce_profit_1'] + excess_profits + ['direction']].reset_index(drop=True)
 summary_cda_ind_by_direction['period'] = [r for r in range(1, num_periods - prac_periods + 1) for _ in range(players_per_group)]
 # print(summary_cda_ind_by_direction)
 

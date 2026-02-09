@@ -49,7 +49,7 @@ regress_flow_ind = pd.DataFrame()
 
 # df for market clearing_prices and clearing_rates/quantities for all groups 
 # create a list of dfs to be merged 
-flow_ind = []
+list_individual_flow = []
 
 
 clearing_prices = []
@@ -404,20 +404,20 @@ for g in range(1, num_groups_flow + 1):
     #     df[(df['timestamp'] % (round_length - leave_out_seconds) == 0) & (df['timestamp'] // (round_length - leave_out_seconds) > ((num_periods - prac_periods) // 2)) & (df['projected_profit_{}'.format(g)] < 0)]['projected_profit_{}'.format(g)].sum(), 
     #     )
 
-    flow_ind.append(df)
+    list_individual_flow.append(df)
 
-data_flow_ind = reduce(lambda left, right:    # Merge DataFrames in list
+individual_per_second_flow = reduce(lambda left, right:    # Merge DataFrames in list
                      pd.merge(left , right,
                               on = ['timestamp', 'id_in_group', 'direction', 'ce_price', 'ce_quantity', 'ce_rate'],
                               ),
-                     flow_ind) 
+                     list_individual_flow) 
 
-# data_flow_ind = pd.concat(flow_ind, ignore_index=True, sort=False)
+# individual_per_second_flow = pd.concat(list_individual_flow, ignore_index=True, sort=False)
 
 
 # aggregate the individual data by direction
 aggregate = {q: 'sum' for q in projected_profits}
-data_flow_contract_by_direction = data_flow_ind[data_flow_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby(['timestamp', 'direction'], as_index=False).agg(aggregate)
+data_flow_contract_by_direction = individual_per_second_flow[individual_per_second_flow['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby(['timestamp', 'direction'], as_index=False).agg(aggregate)
 data_flow_contract_by_direction['ce_profits'] = 0
 data_flow_contract_by_direction['period'] = data_flow_contract_by_direction['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
 for ind, row in data_flow_contract_by_direction.iterrows():
@@ -432,7 +432,7 @@ data_flow_contract_by_direction = data_flow_contract_by_direction.drop('timestam
 
 mean_flow = []
 for g in range(1, num_groups_flow + 1):
-    mean_df = data_flow_ind.groupby(['timestamp'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g), 'in_market_percent_{}'.format(g)]].apply(lambda x: x.abs().mean())
+    mean_df = individual_per_second_flow.groupby(['timestamp'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g), 'in_market_percent_{}'.format(g)]].apply(lambda x: x.abs().mean())
     mean_flow.append(mean_df)
 
 data_mean_flow = reduce(
@@ -443,7 +443,7 @@ data_mean_flow = reduce(
 
 mean_flow_by_direction = []
 for g in range(1, num_groups_flow + 1):
-    mean_df_by_direction = data_flow_ind.groupby(['timestamp', 'direction'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g), 'in_market_percent_{}'.format(g)]].apply(lambda x: x.abs().mean())
+    mean_df_by_direction = individual_per_second_flow.groupby(['timestamp', 'direction'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g), 'in_market_percent_{}'.format(g)]].apply(lambda x: x.abs().mean())
     mean_flow_by_direction.append(mean_df_by_direction)
 
 data_mean_flow_by_direction = reduce(
@@ -454,7 +454,7 @@ data_mean_flow_by_direction = reduce(
 
 sum_flow_by_direction = []
 for g in range(1, num_groups_flow + 1):
-    sum_df_by_direction = data_flow_ind.groupby(['timestamp', 'direction'], as_index=False)['projected_profit_{}'.format(g)].apply(lambda x: x.abs().sum())
+    sum_df_by_direction = individual_per_second_flow.groupby(['timestamp', 'direction'], as_index=False)['projected_profit_{}'.format(g)].apply(lambda x: x.abs().sum())
     sum_flow_by_direction.append(sum_df_by_direction)
 
 data_sum_flow_by_direction = reduce(
@@ -527,8 +527,8 @@ mean_end_of_period_profits_flow_last10['mean'] = mean_end_of_period_profits_flow
 # print('All 20 periods', mean_end_of_period_profits_flow, '\nLast 10 periods\n', mean_end_of_period_profits_flow_last10)
 # print(data_mean_flow)
 
-data_flow_ind[in_market_percents] = data_flow_ind[in_market_percents].abs()
-individual_agg_data_flow = data_flow_ind[data_flow_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby('timestamp', as_index=False)[projected_profits + in_market_percents + realized_surpluses].mean()
+individual_per_second_flow[in_market_percents] = individual_per_second_flow[in_market_percents].abs()
+individual_agg_data_flow = individual_per_second_flow[individual_per_second_flow['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby('timestamp', as_index=False)[projected_profits + in_market_percents + realized_surpluses].mean()
 
 # average projected profit at group level 
 plt.figure(figsize=(15, 5))
@@ -547,7 +547,7 @@ plt.close()
 
 
 summary_flow_by_direction = data_flow_contract_by_direction
-summary_flow_ind_by_direction = data_flow_ind[data_flow_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0][projected_profits + ['ind_ce_profit_1'] + excess_profits + ['direction']].reset_index(drop=True)
+summary_flow_ind_by_direction = individual_per_second_flow[individual_per_second_flow['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0][projected_profits + ['ind_ce_profit_1'] + excess_profits + ['direction']].reset_index(drop=True)
 summary_flow_ind_by_direction['period'] = [r for r in range(1, num_periods - prac_periods + 1) for _ in range(players_per_group)]
 
 print(summary_flow_ind_by_direction)

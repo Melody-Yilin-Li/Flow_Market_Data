@@ -1,36 +1,8 @@
-import numpy as np 
-import pandas as pd
-from collections import defaultdict 
-import matplotlib.pyplot as plt 
-from matplotlib.ticker import StrMethodFormatter
-plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) # 2 decimal places
-import seaborn as sns
-import faulthandler; faulthandler.enable()
-from functools import reduce                # Import reduce function
-from sys import exit
-
-# input session constants 
+from helpers import *
+from common import *
 from config import *
 
 directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
-
-
-# Replace NaN by empty dict
-def replace_nans_with_dict(series):
-    for idx in series[series.isnull()].index:
-        series.at[idx] = {}
-    return series
-
-# Explodes list and dicts
-def df_explosion(df, col_name:str):
-    if df[col_name].isna().any():
-        df[col_name] = replace_nans_with_dict(df[col_name])
-    df.reset_index(drop=True, inplace=True)
-    df1 = pd.DataFrame(df.loc[:,col_name].values.tolist())
-    df = pd.concat([df,df1], axis=1)
-    df.drop([col_name], axis=1, inplace=True)
-    return df
-
 plt.close()
 
 def main():
@@ -43,10 +15,7 @@ if __name__ == "__main__":
 regress_flow_ind = pd.DataFrame()
 
 # read in data 
-
-# df for market clearing_prices and clearing_rates/quantities for all groups 
-# create a list of dfs to be merged 
-flow_ind = []
+list_individual_flow = []
 
 
 executed_percent_buy_flow30_first10, executed_percent_sell_flow30_first10, executed_percent_buy_flow30_last10, executed_percent_sell_flow30_last10 = [], [], [], []
@@ -325,13 +294,13 @@ for g in range(1, num_groups_flow + 1):
 
     df['timestamp'] = df.groupby(['id_in_subsession', 'id_in_group'])['id_in_group'].cumcount() + 1
 
-    flow_ind.append(df)
+    list_individual_flow.append(df)
 
-data_flow_ind = pd.concat(flow_ind, ignore_index=True, sort=False)
+individual_per_second_flow = pd.concat(list_individual_flow, ignore_index=True, sort=False)
 
 
 # aggregate the individual data by direction
-data_flow_contract_by_direction = data_flow_ind[data_flow_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
+data_flow_contract_by_direction = individual_per_second_flow[individual_per_second_flow['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
         .groupby(['timestamp', 'group', 'direction'], as_index=False)\
         .agg({'projected_profit': 'sum'})
 data_flow_contract_by_direction['ce_profits'] = 0
@@ -344,67 +313,12 @@ for ind, row in data_flow_contract_by_direction.iterrows():
 data_flow_contract_by_direction['realized_surplus'] = data_flow_contract_by_direction['projected_profit'] / data_flow_contract_by_direction['ce_profits']
 data_flow_contract_by_direction = data_flow_contract_by_direction.drop('timestamp', axis = 1)
 
-data_mean_flow = data_flow_ind.groupby(['timestamp', 'group'], as_index=False)[['benchmark_pace', 'projected_profit', 'in_market_percent']].apply(lambda x: x.abs().mean())
+data_mean_flow = individual_per_second_flow.groupby(['timestamp', 'group'], as_index=False)[['benchmark_pace', 'projected_profit', 'in_market_percent']].apply(lambda x: x.abs().mean())
 
-data_mean_flow_by_direction = data_flow_ind.groupby(['timestamp', 'group', 'direction'], as_index=False)[['benchmark_pace', 'projected_profit', 'in_market_percent']]\
+data_mean_flow_by_direction = individual_per_second_flow.groupby(['timestamp', 'group', 'direction'], as_index=False)[['benchmark_pace', 'projected_profit', 'in_market_percent']]\
     .apply(lambda x: x.abs().mean())
 
-data_sum_flow_by_direction = data_flow_ind.groupby(['timestamp', 'group', 'direction'], as_index=False)['projected_profit'].apply(lambda x: x.abs().sum())
-
-# average benchmark_pace at group level 
-# plt.figure(figsize=(15, 5))
-# for l in range(num_groups_flow): 
-#     lab = '_group ' + str(l + 1)
-#     plt.plot(data_mean_flow[(data_mean_flow['benchmark_pace'] > 0) & (data_mean_flow['group'] == l + 1)]['timestamp'], \
-#              data_mean_flow[(data_mean_flow['benchmark_pace'] > 0) & (data_mean_flow['group'] == l + 1)]['benchmark_pace'], \
-#                 linestyle='solid', c=colors[l], label=lab)
-# plt.hlines(y=1, xmin=0, xmax=(num_periods-prac_periods) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='--')
-# for x in [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]:
-#     plt.vlines(x, ymin=0, ymax=5, colors='lightgrey', linestyles='dotted')
-# # plt.legend(bbox_to_anchor=(1, 1),
-# #         loc='upper left',
-# #         borderaxespad=.5)
-# plt.ylim(0, 5)
-# plt.xlabel('Time')
-# plt.ylabel('Benchmark Pace')
-# plt.title('Mean Benchmark Pace vs Time')
-# plt.savefig(os.path.join(figures_dir, 'groups_flow_benchmark_pace.png'))
-# plt.close()
-
-# average projected profit at group level 
-plt.figure(figsize=(15, 5))
-for l in range(num_groups_flow): 
-    lab = '_group ' + str(l + 1)
-    plt.plot(data_mean_flow[(data_mean_flow['group'] == l + 1)]['timestamp'], \
-             data_mean_flow[(data_mean_flow['group'] == l + 1)]['projected_profit'], \
-                linestyle='solid', c=colors[l], label=lab)
-# plt.legend(bbox_to_anchor=(1, 1),
-#         loc='upper left',
-#         borderaxespad=.5)
-plt.ylim(0, 1800)
-plt.xlabel('Time')
-plt.ylabel('Projected Profit')
-plt.title('Mean Projected Profit vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_projected_profit.png'))
-plt.close()
-
-
-# average projected profit at group level (by direction)
-plt.figure(figsize=(15, 5))
-data_mean_flow_by_direction.loc[data_mean_flow_by_direction['direction'] == 'sell', 'projected_profit'] *= -1
-data_mean_flow_by_direction['group_id'] = 'group ' + data_mean_flow_by_direction['group'].astype(str)
-
-sns.lineplot(data=data_mean_flow_by_direction, x='timestamp', y='projected_profit', hue='group_id', style='direction', palette=colors[:num_groups_flow], legend='full')
-plt.hlines(y=0, xmin=0, xmax=(num_periods-prac_periods) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='dotted')
-plt.legend(bbox_to_anchor=(1, 1),
-        loc='upper left',
-        borderaxespad=.5)
-plt.ylim(-2550, 2550)
-plt.xlabel('Time')
-plt.ylabel('Projected Profit (+ for buyers/- for sellers)')
-plt.title('Mean Projected Profit vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_flow_projected_profit_by_direction.png'))
-plt.close()
+data_sum_flow_by_direction = individual_per_second_flow.groupby(['timestamp', 'group', 'direction'], as_index=False)['projected_profit'].apply(lambda x: x.abs().sum())
 
 
 end_of_period_profits_flow = data_sum_flow_by_direction[data_sum_flow_by_direction['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].copy()
@@ -419,31 +333,13 @@ mean_end_of_period_profits_flow_last10 = end_of_period_profits_flow[end_of_perio
 direction_means_last10 = mean_end_of_period_profits_flow_last10.groupby('direction')['projected_profit'].transform('mean')
 mean_end_of_period_profits_flow_last10['mean'] = direction_means_last10
 
-data_flow_ind['in_market_percent'] = data_flow_ind['in_market_percent'].abs() 
-individual_agg_data_flow = data_flow_ind[data_flow_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
+individual_per_second_flow['in_market_percent'] = individual_per_second_flow['in_market_percent'].abs() 
+individual_agg_data_flow = individual_per_second_flow[individual_per_second_flow['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
     .groupby(['group', 'timestamp'], as_index=False)[['projected_profit', 'in_market_percent', 'realized_surplus']].mean()
 individual_agg_data_flow['period'] = individual_agg_data_flow['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
 
-# average realized surplus at group level 
-# plt.figure(figsize=(15, 5))
-# for l in range(num_groups_flow): 
-#     lab = '_group ' + str(l + 1)
-#     plt.plot(individual_agg_data_flow[(individual_agg_data_flow['group'] == l + 1)]['timestamp'], \
-#             individual_agg_data_flow[(individual_agg_data_flow['group'] == l + 1)]['realized_surplus'], \
-#             linestyle='solid', c=colors[l], label=lab)
-# # plt.legend(bbox_to_anchor=(1, 1),
-# #         loc='upper left',
-# #         borderaxespad=.5)
-# plt.ylim(-0.1, 1.5)
-# plt.xlabel('Time')
-# plt.ylabel('Realized Surplus')
-# plt.title('Mean Realized Surplus vs Time')
-# plt.savefig(os.path.join(figures_dir, 'groups_flow30ealized_surplus_ind_truncated.png'))
-# plt.close()
-
-
 summary_flow_by_direction = data_flow_contract_by_direction
-summary_flow_ind_by_direction = data_flow_ind[data_flow_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
+summary_flow_ind_by_direction = individual_per_second_flow[individual_per_second_flow['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
         [['period', 'group', 'direction', 'projected_profit', 'ind_ce_profit', 'excess_profit']]\
         .reset_index(drop=True)
 
@@ -545,28 +441,6 @@ cumulative_prob_excess_profit_buy_flow60_ind_all20 = np.arange(1, len(sorted_exc
 cumulative_prob_excess_profit_sell_flow30_ind_all20 = np.arange(1, len(sorted_excess_profit_sell_flow30_ind_all20) + 1) / len(sorted_excess_profit_sell_flow30_ind_all20)
 cumulative_prob_excess_profit_sell_flow60_ind_all20 = np.arange(1, len(sorted_excess_profit_sell_flow60_ind_all20) + 1) / len(sorted_excess_profit_sell_flow60_ind_all20)
 
-plt.figure(figsize=(8, 5))
-plt.step(sorted_excess_profit_flow30_ind_all20, cumulative_prob_excess_profit_flow30_ind_all20, label='CDF', where='post')
-plt.step(sorted_excess_profit_buy_flow30_ind_all20, cumulative_prob_excess_profit_buy_flow30_ind_all20, label='buyers', where='post')
-plt.step(sorted_excess_profit_sell_flow30_ind_all20, cumulative_prob_excess_profit_sell_flow30_ind_all20, label='sellers', where='post')
-plt.title('CDF of the Excess Profits (FLOW)')
-plt.xlabel('Excess Profits')
-plt.ylabel('Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow30_excess_profits_cdf.png'))
-plt.close()
-
-plt.figure(figsize=(8, 5))
-plt.step(sorted_excess_profit_flow60_ind_all20, cumulative_prob_excess_profit_flow60_ind_all20, label='CDF', where='post')
-plt.step(sorted_excess_profit_buy_flow60_ind_all20, cumulative_prob_excess_profit_buy_flow60_ind_all20, label='buyers', where='post')
-plt.step(sorted_excess_profit_sell_flow60_ind_all20, cumulative_prob_excess_profit_sell_flow60_ind_all20, label='sellers', where='post')
-plt.title('CDF of the Excess Profits (FLOW)')
-plt.xlabel('Excess Profits')
-plt.ylabel('Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow60_excess_profits_cdf.png'))
-plt.close()
-
 # cdf of percent of order volume executed 
 sorted_executed_percent_buy_flow30_first10 = np.sort(np.concatenate(executed_percent_buy_flow30_first10))
 sorted_executed_percent_buy_flow30_last10 = np.sort(np.concatenate(executed_percent_buy_flow30_last10))
@@ -593,24 +467,6 @@ cumulative_prob_executed_percent_buy_flow30_all20 = np.arange(1, len(sorted_exec
 cumulative_prob_executed_percent_buy_flow60_all20 = np.arange(1, len(sorted_executed_percent_buy_flow60_all20) + 1) / len(sorted_executed_percent_buy_flow60_all20)
 cumulative_prob_executed_percent_sell_flow30_all20 = np.arange(1, len(sorted_executed_percent_sell_flow30_all20) + 1) / len(sorted_executed_percent_sell_flow30_all20)
 cumulative_prob_executed_percent_sell_flow60_all20 = np.arange(1, len(sorted_executed_percent_sell_flow60_all20) + 1) / len(sorted_executed_percent_sell_flow60_all20)
-
-
-plt.figure(figsize=(8, 6))
-plt.plot(sorted_executed_percent_buy_flow30_first10, cumulative_prob_executed_percent_buy_flow30_first10, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T1-T10')
-plt.plot(sorted_executed_percent_sell_flow30_first10, cumulative_prob_executed_percent_sell_flow30_first10, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T1-T10')
-plt.plot(sorted_executed_percent_buy_flow60_first10, cumulative_prob_executed_percent_buy_flow60_first10, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T1-T10')
-plt.plot(sorted_executed_percent_sell_flow60_first10, cumulative_prob_executed_percent_sell_flow60_first10, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T1-T10')
-plt.plot(sorted_executed_percent_buy_flow30_last10, cumulative_prob_executed_percent_buy_flow30_last10, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T11-T20')
-plt.plot(sorted_executed_percent_sell_flow30_last10, cumulative_prob_executed_percent_sell_flow30_last10, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T11-T20')
-plt.plot(sorted_executed_percent_buy_flow60_last10, cumulative_prob_executed_percent_buy_flow60_last10, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T11-T20')
-plt.plot(sorted_executed_percent_sell_flow60_last10, cumulative_prob_executed_percent_sell_flow60_last10, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T11-T20')
-plt.title('CDF of the Executed Order Volume (FLOW)')
-plt.xlabel('%Execeted Order Volume')
-plt.ylabel('Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_executed_order_volume_cdf_all.png'))
-plt.close()
-
 
 # cdf of order price spread
 sorted_order_price_spread_buy_flow30_first10 = np.sort(np.concatenate(order_price_spread_buy_flow30_first10))
@@ -639,44 +495,16 @@ cumulative_prob_order_price_spread_buy_flow60_all20 = np.arange(1, len(sorted_or
 cumulative_prob_order_price_spread_sell_flow30_all20 = np.arange(1, len(sorted_order_price_spread_sell_flow30_all20) + 1) / len(sorted_order_price_spread_sell_flow30_all20)
 cumulative_prob_order_price_spread_sell_flow60_all20 = np.arange(1, len(sorted_order_price_spread_sell_flow60_all20) + 1) / len(sorted_order_price_spread_sell_flow60_all20)
 
-plt.figure(figsize=(8, 6))
-plt.plot(sorted_order_price_spread_buy_flow30_all20, cumulative_prob_order_price_spread_buy_flow30_all20, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
-plt.plot(sorted_order_price_spread_sell_flow30_all20, cumulative_prob_order_price_spread_sell_flow30_all20, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
-plt.plot(sorted_order_price_spread_buy_flow60_all20, cumulative_prob_order_price_spread_buy_flow60_all20, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
-plt.plot(sorted_order_price_spread_sell_flow60_all20, cumulative_prob_order_price_spread_sell_flow60_all20, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
-plt.title('CDF of the Order Price Spread (T1-T20)')
-plt.xlabel('Order Price Spread')
-plt.ylabel('Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_order_price_spread_cdf_all20.png'))
-plt.close()
-
-plt.figure(figsize=(8, 6))
-plt.plot(sorted_order_price_spread_buy_flow30_first10, cumulative_prob_order_price_spread_buy_flow30_first10, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T1-T10')
-plt.plot(sorted_order_price_spread_sell_flow30_first10, cumulative_prob_order_price_spread_sell_flow30_first10, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T1-T10')
-plt.plot(sorted_order_price_spread_buy_flow60_first10, cumulative_prob_order_price_spread_buy_flow60_first10, linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T1-T10')
-plt.plot(sorted_order_price_spread_sell_flow60_first10, cumulative_prob_order_price_spread_sell_flow60_first10, linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T1-T10')
-plt.plot(sorted_order_price_spread_buy_flow30_last10, cumulative_prob_order_price_spread_buy_flow30_last10, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T11-T20')
-plt.plot(sorted_order_price_spread_sell_flow30_last10, cumulative_prob_order_price_spread_sell_flow30_last10, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T11-T20')
-plt.plot(sorted_order_price_spread_buy_flow60_last10, cumulative_prob_order_price_spread_buy_flow60_last10, linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T11-T20')
-plt.plot(sorted_order_price_spread_sell_flow60_last10, cumulative_prob_order_price_spread_sell_flow60_last10, linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T11-T20')
-plt.title('CDF of the Order Price Spread')
-plt.xlabel('Order Price Spread')
-plt.ylabel('Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_order_price_spread_cdf_all.png'))
-plt.close()
-
 
 # cdf of realized surplus
-sorted_realized_surplus_buy_flow30_first10 = np.sort(data_flow_ind[(data_flow_ind['direction'] == 'buy') & (data_flow_ind['period'] <= (num_periods - prac_periods) // 2) & (data_flow_ind['group'] <= num_groups_flow30)]['realized_surplus'].tolist())
-sorted_realized_surplus_buy_flow30_last10 = np.sort(data_flow_ind[(data_flow_ind['direction'] == 'buy') & (data_flow_ind['period'] > (num_periods - prac_periods) // 2) & (data_flow_ind['group'] <= num_groups_flow30)]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow30_first10 = np.sort(data_flow_ind[(data_flow_ind['direction'] == 'sell') & (data_flow_ind['period'] <= (num_periods - prac_periods) // 2) & (data_flow_ind['group'] <= num_groups_flow30)]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow30_last10 = np.sort(data_flow_ind[(data_flow_ind['direction'] == 'sell') & (data_flow_ind['period'] > (num_periods - prac_periods) // 2) & (data_flow_ind['group'] <= num_groups_flow30)]['realized_surplus'].tolist())
-sorted_realized_surplus_buy_flow60_first10 = np.sort(data_flow_ind[(data_flow_ind['direction'] == 'buy') & (data_flow_ind['period'] <= (num_periods - prac_periods) // 2) & (data_flow_ind['group'] > num_groups_flow30)]['realized_surplus'].tolist())
-sorted_realized_surplus_buy_flow60_last10 = np.sort(data_flow_ind[(data_flow_ind['direction'] == 'buy') & (data_flow_ind['period'] > (num_periods - prac_periods) // 2) & (data_flow_ind['group'] > num_groups_flow30)]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow60_first10 = np.sort(data_flow_ind[(data_flow_ind['direction'] == 'sell') & (data_flow_ind['period'] <= (num_periods - prac_periods) // 2) & (data_flow_ind['group'] > num_groups_flow30)]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow60_last10 = np.sort(data_flow_ind[(data_flow_ind['direction'] == 'sell') & (data_flow_ind['period'] > (num_periods - prac_periods) // 2) & (data_flow_ind['group'] > num_groups_flow30)]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow30_first10 = np.sort(individual_per_second_flow[(individual_per_second_flow['direction'] == 'buy') & (individual_per_second_flow['period'] <= (num_periods - prac_periods) // 2) & (individual_per_second_flow['group'] <= num_groups_flow30)]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow30_last10 = np.sort(individual_per_second_flow[(individual_per_second_flow['direction'] == 'buy') & (individual_per_second_flow['period'] > (num_periods - prac_periods) // 2) & (individual_per_second_flow['group'] <= num_groups_flow30)]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow30_first10 = np.sort(individual_per_second_flow[(individual_per_second_flow['direction'] == 'sell') & (individual_per_second_flow['period'] <= (num_periods - prac_periods) // 2) & (individual_per_second_flow['group'] <= num_groups_flow30)]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow30_last10 = np.sort(individual_per_second_flow[(individual_per_second_flow['direction'] == 'sell') & (individual_per_second_flow['period'] > (num_periods - prac_periods) // 2) & (individual_per_second_flow['group'] <= num_groups_flow30)]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow60_first10 = np.sort(individual_per_second_flow[(individual_per_second_flow['direction'] == 'buy') & (individual_per_second_flow['period'] <= (num_periods - prac_periods) // 2) & (individual_per_second_flow['group'] > num_groups_flow30)]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow60_last10 = np.sort(individual_per_second_flow[(individual_per_second_flow['direction'] == 'buy') & (individual_per_second_flow['period'] > (num_periods - prac_periods) // 2) & (individual_per_second_flow['group'] > num_groups_flow30)]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow60_first10 = np.sort(individual_per_second_flow[(individual_per_second_flow['direction'] == 'sell') & (individual_per_second_flow['period'] <= (num_periods - prac_periods) // 2) & (individual_per_second_flow['group'] > num_groups_flow30)]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow60_last10 = np.sort(individual_per_second_flow[(individual_per_second_flow['direction'] == 'sell') & (individual_per_second_flow['period'] > (num_periods - prac_periods) // 2) & (individual_per_second_flow['group'] > num_groups_flow30)]['realized_surplus'].tolist())
 cumulative_prob_realized_surplus_buy_flow30_first10 = np.arange(1, len(sorted_realized_surplus_buy_flow30_first10) + 1) / len(sorted_realized_surplus_buy_flow30_first10)
 cumulative_prob_realized_surplus_buy_flow30_last10 = np.arange(1, len(sorted_realized_surplus_buy_flow30_last10) + 1) / len(sorted_realized_surplus_buy_flow30_last10)
 cumulative_prob_realized_surplus_sell_flow30_first10 = np.arange(1, len(sorted_realized_surplus_sell_flow30_first10) + 1) / len(sorted_realized_surplus_sell_flow30_first10)
@@ -685,20 +513,3 @@ cumulative_prob_realized_surplus_buy_flow60_first10 = np.arange(1, len(sorted_re
 cumulative_prob_realized_surplus_buy_flow60_last10 = np.arange(1, len(sorted_realized_surplus_buy_flow60_last10) + 1) / len(sorted_realized_surplus_buy_flow60_last10)
 cumulative_prob_realized_surplus_sell_flow60_first10 = np.arange(1, len(sorted_realized_surplus_sell_flow60_first10) + 1) / len(sorted_realized_surplus_sell_flow60_first10)
 cumulative_prob_realized_surplus_sell_flow60_last10 = np.arange(1, len(sorted_realized_surplus_sell_flow60_last10) + 1) / len(sorted_realized_surplus_sell_flow60_last10)
-
-
-plt.figure(figsize=(8, 6))
-plt.plot(sorted_realized_surplus_buy_flow30_first10, cumulative_prob_realized_surplus_buy_flow30_first10, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T1-T10')
-plt.plot(sorted_realized_surplus_sell_flow30_first10, cumulative_prob_realized_surplus_sell_flow30_first10, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T1-T10')
-plt.plot(sorted_realized_surplus_buy_flow60_first10, cumulative_prob_realized_surplus_buy_flow60_first10, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T1-T10')
-plt.plot(sorted_realized_surplus_sell_flow60_first10, cumulative_prob_realized_surplus_sell_flow60_first10, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T1-T10')
-plt.plot(sorted_realized_surplus_buy_flow30_last10, cumulative_prob_realized_surplus_buy_flow30_last10, marker=',', linestyle='dashdot', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer T11-T20')
-plt.plot(sorted_realized_surplus_sell_flow30_last10, cumulative_prob_realized_surplus_sell_flow30_last10, marker=',', linestyle='dashdot', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller T11-T20')
-plt.plot(sorted_realized_surplus_buy_flow60_last10, cumulative_prob_realized_surplus_buy_flow60_last10, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer T11-T20')
-plt.plot(sorted_realized_surplus_sell_flow60_last10, cumulative_prob_realized_surplus_sell_flow60_last10, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller T11-T20')
-plt.title('CDF of the Realized Surplus (FLOW)')
-plt.xlabel('Realized Surplus')
-plt.ylabel('Probability')
-plt.legend()    
-plt.savefig(os.path.join(figures_dir, 'groups_flow30ealized_surplus_cdf_all.png'))
-plt.close()

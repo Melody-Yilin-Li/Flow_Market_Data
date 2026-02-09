@@ -1,36 +1,8 @@
-import numpy as np 
-import pandas as pd
-import itertools 
-import matplotlib.pyplot as plt 
-from matplotlib.ticker import StrMethodFormatter
-plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) # 2 decimal places
-import seaborn as sns
-import faulthandler; faulthandler.enable()
-from functools import reduce                # Import reduce function
-from sys import exit
-
-# input session constants 
+from helpers import *
+from common import *
 from config import *
 
 directory = '/Users/YilinLi/Documents/UCSC/Flow Data/'
-
-
-# Replace NaN by empty dict
-def replace_nans_with_dict(series):
-    for idx in series[series.isnull()].index:
-        series.at[idx] = {}
-    return series
-
-# Explodes list and dicts
-def df_explosion(df, col_name:str):
-    if df[col_name].isna().any():
-        df[col_name] = replace_nans_with_dict(df[col_name])
-    df.reset_index(drop=True, inplace=True)
-    df1 = pd.DataFrame(df.loc[:,col_name].values.tolist())
-    df = pd.concat([df,df1], axis=1)
-    df.drop([col_name], axis=1, inplace=True)
-    return df
-
 plt.close()
 
 
@@ -43,11 +15,7 @@ if __name__ == "__main__":
 
 regress_cda_ind = pd.DataFrame()
 
-# read in data 
-
-# df for market clearing_prices and clearing_rates/quantities for all groups 
-# create a list of dfs to be merged 
-cda_ind = []
+list_individual_cda = []
 
 executed_percent_buy_cda_first10, executed_percent_sell_cda_first10, executed_percent_buy_cda_last10, executed_percent_sell_cda_last10 = [], [], [], []
 
@@ -284,13 +252,13 @@ for g in range(1, num_groups_cda + 1):
     df['timestamp'] = df.groupby(['id_in_subsession', 'id_in_group'])['id_in_group'].cumcount() + 1
 
 
-    cda_ind.append(df)
+    list_individual_cda.append(df)
     
-data_cda_ind = pd.concat(cda_ind, ignore_index=True, sort=False) 
+individual_per_second_cda = pd.concat(list_individual_cda, ignore_index=True, sort=False) 
 
 
 # aggregate the individual data by direction
-data_cda_contract_by_direction = data_cda_ind[data_cda_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
+data_cda_contract_by_direction = individual_per_second_cda[individual_per_second_cda['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
             .groupby(['timestamp', 'direction'], as_index=False)\
             .agg({'projected_profit': 'sum'})
 data_cda_contract_by_direction['ce_profits'] = 0
@@ -303,46 +271,11 @@ for ind, row in data_cda_contract_by_direction.iterrows():
 data_cda_contract_by_direction['realized_surplus'] = data_cda_contract_by_direction['projected_profit'] / data_cda_contract_by_direction['ce_profits']
 data_cda_contract_by_direction = data_cda_contract_by_direction.drop('timestamp', axis = 1)
 
-data_mean_cda = data_cda_ind.groupby(['timestamp', 'group'], as_index=False)[['benchmark_pace', 'projected_profit', 'in_market_percent']].apply(lambda x: x.abs().mean())
+data_mean_cda = individual_per_second_cda.groupby(['timestamp', 'group'], as_index=False)[['benchmark_pace', 'projected_profit', 'in_market_percent']].apply(lambda x: x.abs().mean())
 
-data_mean_cda_by_direction = data_cda_ind.groupby(['timestamp', 'group', 'direction'], as_index=False)[['benchmark_pace', 'projected_profit', 'in_market_percent']].apply(lambda x: x.abs().mean())
+data_mean_cda_by_direction = individual_per_second_cda.groupby(['timestamp', 'group', 'direction'], as_index=False)[['benchmark_pace', 'projected_profit', 'in_market_percent']].apply(lambda x: x.abs().mean())
 
-data_sum_cda_by_direction = data_cda_ind.groupby(['timestamp', 'group', 'direction'], as_index=False)['projected_profit'].apply(lambda x: x.abs().sum())
-
-
-# average projected profit at group level 
-plt.figure(figsize=(15, 5))
-for l in range(num_groups_cda): 
-    lab = '_group' + str(l + 1)
-    plt.plot(data_mean_cda[(data_mean_cda['group'] == l + 1)]['timestamp'], \
-             data_mean_cda[(data_mean_cda['group'] == l + 1)]['projected_profit'], \
-             linestyle='solid', c=colors[l], label=lab)
-# plt.legend(bbox_to_anchor=(1, 1),
-#         loc='upper left',
-#         borderaxespad=.5)
-plt.ylim(0, 1800)
-plt.xlabel('Time')
-plt.ylabel('Projected Profit')
-plt.title('Mean Projected Profit vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_projected_profit.png'))
-plt.close()
-
-# average projected profit at group level (by direction)
-plt.figure(figsize=(15, 5))
-data_mean_cda_by_direction.loc[data_mean_cda_by_direction['direction'] == 'sell', 'projected_profit'] *= -1
-data_mean_cda_by_direction['group_id'] = 'group' + data_mean_cda_by_direction['group'].astype(str)
-
-sns.lineplot(data=data_mean_cda_by_direction, x='timestamp', y='projected_profit', hue='group_id', style='direction', palette=colors[:num_groups_cda], legend='full')
-plt.hlines(y=0, xmin=0, xmax=(num_periods-prac_periods) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='dotted')
-plt.legend(bbox_to_anchor=(1, 1),
-        loc='upper left',
-        borderaxespad=.5)
-plt.ylim(-2550, 2550)
-plt.xlabel('Time')
-plt.ylabel('Projected Profit')
-plt.title('Mean Projected Profit vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_projected_profit_by_direction.png'))
-plt.close()
+data_sum_cda_by_direction = individual_per_second_cda.groupby(['timestamp', 'group', 'direction'], as_index=False)['projected_profit'].apply(lambda x: x.abs().sum())
 
 
 end_of_period_profits_cda = data_sum_cda_by_direction[data_sum_cda_by_direction['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].copy()
@@ -357,14 +290,14 @@ mean_end_of_period_profits_cda_last10 = end_of_period_profits_cda[end_of_period_
 direction_means_last10 = mean_end_of_period_profits_cda_last10.groupby('direction')['projected_profit'].transform('mean')
 mean_end_of_period_profits_cda_last10['mean'] = direction_means_last10
 
-data_cda_ind['in_market_percent'] = data_cda_ind['in_market_percent'].abs()
-individual_agg_data_cda = data_cda_ind[data_cda_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
+individual_per_second_cda['in_market_percent'] = individual_per_second_cda['in_market_percent'].abs()
+individual_agg_data_cda = individual_per_second_cda[individual_per_second_cda['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
     .groupby(['group', 'timestamp'], as_index=False)[['projected_profit', 'in_market_percent', 'realized_surplus']].mean()
 individual_agg_data_cda['period'] = individual_agg_data_cda['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
 
 
 summary_cda_by_direction = data_cda_contract_by_direction
-summary_cda_ind_by_direction = data_cda_ind[data_cda_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
+summary_cda_ind_by_direction = individual_per_second_cda[individual_per_second_cda['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
     [['period', 'group', 'direction', 'projected_profit', 'ind_ce_profit',  'excess_profit']]\
     .reset_index(drop=True)
 
@@ -394,25 +327,6 @@ excess_profits_buy_cda_ind_first10 = summary_cda_ind_by_direction[(summary_cda_i
 excess_profits_sell_cda_ind_all20 = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'sell']['excess_profit'].tolist()
 excess_profits_sell_cda_ind_last10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist()
 excess_profits_sell_cda_ind_first10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist()
-
-
-# cdf of excess profits at ind level
-sorted_excess_profit_cda_ind_all20 = np.sort(excess_profits_buy_cda_ind_all20 + excess_profits_sell_cda_ind_all20)
-sorted_excess_profit_buy_cda_ind_all20 = np.sort(excess_profits_buy_cda_ind_all20)
-sorted_excess_profit_sell_cda_ind_all20 = np.sort(excess_profits_sell_cda_ind_all20)
-cumulative_prob_excess_profit_cda_ind_all20 = np.arange(1, len(sorted_excess_profit_cda_ind_all20) + 1) / len(sorted_excess_profit_cda_ind_all20)
-cumulative_prob_excess_profit_buy_cda_ind_all20 = np.arange(1, len(sorted_excess_profit_buy_cda_ind_all20) + 1) / len(sorted_excess_profit_buy_cda_ind_all20)
-cumulative_prob_excess_profit_sell_cda_ind_all20 = np.arange(1, len(sorted_excess_profit_sell_cda_ind_all20) + 1) / len(sorted_excess_profit_sell_cda_ind_all20)
-plt.figure(figsize=(8, 5))
-plt.step(sorted_excess_profit_cda_ind_all20, cumulative_prob_excess_profit_cda_ind_all20, label='CDF', where='post')
-plt.step(sorted_excess_profit_buy_cda_ind_all20, cumulative_prob_excess_profit_buy_cda_ind_all20, label='buyers', where='post')
-plt.step(sorted_excess_profit_sell_cda_ind_all20, cumulative_prob_excess_profit_sell_cda_ind_all20, label='sellers', where='post')
-plt.title('CDF of the Excess Profits (CDA)')
-plt.xlabel('Excess Profits')
-plt.ylabel('Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_cda_excess_profits_cdf.png'))
-plt.close()
 
 
 # cdf of percent of order volume executed 

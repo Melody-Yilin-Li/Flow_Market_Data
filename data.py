@@ -119,10 +119,10 @@ print('FLOW RESULTS')
 exec(open(data_directory + 'flow.py').read())
 
 print('CDA INDIVIDUAL RESULTS')
-exec(open(data_directory + 'cda_ind.py').read())
+exec(open(data_directory + 'list_individual_cda.py').read())
 
 print('FLOW INDIVIDUAL RESULTS')
-exec(open(data_directory + 'flow_ind.py').read())
+exec(open(data_directory + 'list_individual_flow.py').read())
 
 
 exec(open(data_directory + 'new_plots.py').read())
