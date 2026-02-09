@@ -1,24 +1,6 @@
-import os 
-import numpy as np 
-import pandas as pd
-from tabulate import tabulate 
-import statistics
-import statsmodels.api as sm
-from stargazer.stargazer import Stargazer
-from matplotlib import rc
-import matplotlib.pyplot as plt
-plt.rcParams.update({
-    'font.family': 'serif',
-    'font.size': 16,
-    'axes.titlesize': 16,
-    'axes.labelsize': 16,
-    'axes.titleweight': 'bold',
-    'axes.labelweight': 'bold',
-    'xtick.labelsize': 16,
-    'ytick.labelsize': 16,
-})
-
-rc('text',usetex=True)
+from common import *
+from helpers import *
+from config import *
 
 data_directory = '/Users/YilinLi/Documents/UCSC/Flow Data/FLOW_MARKET_DATA/'
 
@@ -146,10 +128,6 @@ regress_data_profits = regress_data_direction.groupby(['format', 'period', 'grou
     'gross_norm_diff': calculate_diff(x['gross_profits_norm']),
     'total_ce_profit': x['ce_profit'].sum(),
     'overall_order_num': x['order_num'].sum(),
-    # 'overall_order_price_low': (x['order_num'] * x['order_price_low']).sum() / x['order_num'].sum(), # theoretical calculations
-    # 'overall_order_price_high': (x['order_num'] * x['order_price_high']).sum() / x['order_num'].sum(),
-    # 'overall_order_quantity': (x['order_num'] * x['order_quantity']).sum() / x['order_num'].sum(),
-    # 'overall_order_rate': (x['order_num'] * x['order_rate']).sum() / x['order_num'].sum(),
     'overall_order_price_low': x['order_price_low'].mean(), # simple avg between buy and sell
     'overall_order_price_high':  x['order_price_high'].mean(),
     'overall_order_quantity': x['order_quantity'].mean(),
@@ -163,7 +141,6 @@ regress_data_profits = regress_data_direction.groupby(['format', 'period', 'grou
     '%no_trans': x['no_trans'].mean() / round_length, 
 })).reset_index()
 regress_data_profits['max_quantity/rate_orders'] = regress_data_profits['max_quantity/rate_orders_buy'] + regress_data_profits['max_quantity/rate_orders_sell']
-# regress_data_profits['%max_quantity/rate_orders'] = regress_data_profits['max_quantity/rate_orders'] / regress_data_profits['overall_order_num'] # theoretical calculations
 regress_buy = regress_data_direction[regress_data_direction['direction'] == 'buy'][['format', 'period', 'group', 'cash', 'ce_profit', 'order_num', 'order_price_low', 'order_price_high', 'order_quantity', 'order_rate', 'order_price_low_initial', 'order_price_high_initial', 'order_quantity_initial', 'order_rate_initial']]
 regress_sell = regress_data_direction[regress_data_direction['direction'] == 'sell'][['format', 'period', 'group', 'cash', 'ce_profit', 'order_num', 'order_price_low', 'order_price_high', 'order_quantity', 'order_rate', 'order_price_low_initial', 'order_price_high_initial', 'order_quantity_initial', 'order_rate_initial']]
 regress_data_profits = pd.merge(regress_data_profits, regress_buy, on=['format', 'period', 'group'], how='left')
@@ -190,8 +167,6 @@ categorical_cols = ['format']
 regress_data_interval[categorical_cols] = regress_data_interval[categorical_cols].astype('category')
 format_mapping = {'CDA': 0, 'Flow30': 1, 'Flow60': 2}
 regress_data_interval['format_num'] = regress_data_interval['format'].map(format_mapping)
-# regress_data_interval['test'] = (regress_data_interval['period'] - (num_periods - prac_periods)) * regress_data_interval['format_num']
-# regress_data_interval['test_new'] = (1 - regress_data_interval['period'] / (num_periods - prac_periods)) * regress_data_interval['format_num']
 regress_data_interval['price_deviation_log'] = np.log(np.where(regress_data_interval['price_deviation'] == 0, 0.001, regress_data_interval['price_deviation']))
 regress_data_interval['price_change_log'] = np.log(np.abs(np.where(regress_data_interval['price_change'] == 0, 0.001, regress_data_interval['price_change'])))
 regress_data_interval['log_wprice'] = np.log(regress_data_interval['weighted_price'])
@@ -204,14 +179,12 @@ interval_std = regress_data_interval.groupby(['format', 'group', 'period', 'grou
 
 
 # df for each second
-regress_data_second = pd.concat([regress_cda_second, regress_flow60econd], ignore_index=True)
+regress_data_second = pd.concat([regress_cda_second, regress_flow_second], ignore_index=True)
 second_dummies = pd.get_dummies(regress_data_second['block'], prefix='block')
 regress_data_second = regress_data_second.join(second_dummies)
 regress_data_second['group_id'] = regress_data_second['group']
 regress_data_second['group'] = regress_data_second['format'] + regress_data_second['group'].astype(str)
 regress_data_second['format_num'] = regress_data_second['format'].map(format_mapping)
-# regress_data_second['test'] = (regress_data_second['period'] - (num_periods - prac_periods)) * regress_data_second['format_num']
-# regress_data_second['test_new'] = (1 - regress_data_second['period'] / (num_periods - prac_periods)) * regress_data_second['format_num']
 regress_data_second['log_price'] = np.log(regress_data_second['clearing_price'])
 regress_data_second['change_log_price'] = regress_data_second.groupby(['format', 'group', 'period'])['log_price'].diff()
 regress_data_second['price_change'] = regress_data_second.groupby(['format', 'group', 'period'])['clearing_price'].diff()
@@ -1313,123 +1286,6 @@ agg_plot_df = pd.DataFrame(
 
 
 ##### profits distribution #####
-# plot the cumulative distribution function
-#### individuals ####
-# all periods
-sorted_gross_cda_buy = np.sort(profits_buy_cda_ind_all20)
-cumulative_gross_cda_buy = np.arange(len(sorted_gross_cda_buy)) / len(sorted_gross_cda_buy)
-sorted_gross_cda_sell = np.sort(profits_sell_cda_ind_all20)
-cumulative_gross_cda_sell = np.arange(len(sorted_gross_cda_sell)) / len(sorted_gross_cda_sell)
-sorted_gross_flow30_buy = np.sort(profits_buy_flow30_ind_all20)
-cumulative_gross_flow30_buy = np.arange(len(sorted_gross_flow30_buy)) / len(sorted_gross_flow30_buy)
-sorted_gross_flow30_sell = np.sort(profits_sell_flow30_ind_all20)
-cumulative_gross_flow30_sell = np.arange(len(sorted_gross_flow30_sell)) / len(sorted_gross_flow30_sell)
-sorted_gross_flow60_buy = np.sort(profits_buy_flow60_ind_all20)
-cumulative_gross_flow60_buy = np.arange(len(sorted_gross_flow60_buy)) / len(sorted_gross_flow60_buy)
-sorted_gross_flow60_sell = np.sort(profits_sell_flow60_ind_all20)
-cumulative_gross_flow60_sell = np.arange(len(sorted_gross_flow60_sell)) / len(sorted_gross_flow60_sell)
-
-
-plt.plot(sorted_gross_cda_buy, cumulative_gross_cda_buy, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
-plt.plot(sorted_gross_cda_sell, cumulative_gross_cda_sell, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_gross_flow30_buy, cumulative_gross_flow30_buy, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
-plt.plot(sorted_gross_flow30_sell, cumulative_gross_flow30_sell, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
-plt.plot(sorted_gross_flow60_buy, cumulative_gross_flow60_buy, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
-plt.plot(sorted_gross_flow60_sell, cumulative_gross_flow60_sell, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
-plt.title('CDF of Gross Profits')
-plt.xlabel('Gross Profits')
-plt.ylabel('Cumulative Probability')
-plt.grid(True)
-plt.legend(loc='lower right')
-plt.savefig(os.path.join(figures_dir, 'gross_profits_cdf.png'))
-plt.close()
-
-sorted_excess_cda_buy = np.sort(excess_profits_buy_cda_ind_all20)
-cumulative_excess_cda_buy = np.arange(len(sorted_excess_cda_buy)) / len(sorted_excess_cda_buy)
-sorted_excess_cda_sell = np.sort(excess_profits_sell_cda_ind_all20)
-cumulative_excess_cda_sell = np.arange(len(sorted_excess_cda_sell)) / len(sorted_excess_cda_sell)
-sorted_excess_flow30_buy = np.sort(excess_profits_buy_flow30_ind_all20)
-cumulative_excess_flow30_buy = np.arange(len(sorted_excess_flow30_buy)) / len(sorted_excess_flow30_buy)
-sorted_excess_flow30_sell = np.sort(excess_profits_sell_flow30_ind_all20)
-cumulative_excess_flow30_sell = np.arange(len(sorted_excess_flow30_sell)) / len(sorted_excess_flow30_sell)
-sorted_excess_flow60_buy = np.sort(excess_profits_buy_flow60_ind_all20)
-cumulative_excess_flow60_buy = np.arange(len(sorted_excess_flow60_buy)) / len(sorted_excess_flow60_buy)
-sorted_excess_flow60_sell = np.sort(excess_profits_sell_flow60_ind_all20)
-cumulative_excess_flow60_sell = np.arange(len(sorted_excess_flow60_sell)) / len(sorted_excess_flow60_sell)
-
-plt.plot(sorted_excess_cda_buy, cumulative_excess_cda_buy, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
-plt.plot(sorted_excess_cda_sell, cumulative_excess_cda_sell, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_excess_flow30_buy, cumulative_excess_flow30_buy, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
-plt.plot(sorted_excess_flow30_sell, cumulative_excess_flow30_sell, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
-plt.plot(sorted_excess_flow60_buy, cumulative_excess_flow60_buy, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
-plt.plot(sorted_excess_flow60_sell, cumulative_excess_flow60_sell, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
-plt.title('CDF of Excess Profits')
-plt.xlabel('Excess Profits')
-plt.ylabel('Cumulative Probability')
-plt.grid(True)
-plt.legend(loc='upper left')
-plt.savefig(os.path.join(figures_dir, 'excess_profits_cdf.png'))
-plt.close()
-
-
-# plot the cumulative distribution function
-# last half periods
-sorted_gross_cda_buy_last10 = np.sort(profits_buy_cda_ind_last10)
-cumulative_gross_cda_buy_last10 = np.arange(len(sorted_gross_cda_buy_last10)) / len(sorted_gross_cda_buy_last10)
-sorted_gross_cda_sell_last10 = np.sort(profits_sell_cda_ind_last10)
-cumulative_gross_cda_sell_last10 = np.arange(len(sorted_gross_cda_sell_last10)) / len(sorted_gross_cda_sell_last10)
-sorted_gross_flow30_buy_last10 = np.sort(profits_buy_flow30_ind_last10)
-cumulative_gross_flow30_buy_last10 = np.arange(len(sorted_gross_flow30_buy_last10)) / len(sorted_gross_flow30_buy_last10)
-sorted_gross_flow30_sell_last10 = np.sort(profits_sell_flow30_ind_last10)
-cumulative_gross_flow30_sell_last10 = np.arange(len(sorted_gross_flow30_sell_last10)) / len(sorted_gross_flow30_sell_last10)
-sorted_gross_flow60_buy_last10 = np.sort(profits_buy_flow60_ind_last10)
-cumulative_gross_flow60_buy_last10 = np.arange(len(sorted_gross_flow60_buy_last10)) / len(sorted_gross_flow60_buy_last10)
-sorted_gross_flow60_sell_last10 = np.sort(profits_sell_flow60_ind_last10)
-cumulative_gross_flow60_sell_last10 = np.arange(len(sorted_gross_flow60_sell_last10)) / len(sorted_gross_flow60_sell_last10)
-
-plt.plot(sorted_gross_cda_buy_last10, cumulative_gross_cda_buy_last10, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
-plt.plot(sorted_gross_cda_sell_last10, cumulative_gross_cda_sell_last10, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_gross_flow30_buy_last10, cumulative_gross_flow30_buy_last10, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
-plt.plot(sorted_gross_flow30_sell_last10, cumulative_gross_flow30_sell_last10, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
-plt.plot(sorted_gross_flow60_buy_last10, cumulative_gross_flow60_buy_last10, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
-plt.plot(sorted_gross_flow60_sell_last10, cumulative_gross_flow60_sell_last10, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
-plt.title('CDF of Gross Profits')
-plt.xlabel('Gross Profits')
-plt.ylabel('Cumulative Probability')
-plt.grid(True)
-plt.legend(loc='upper left')
-plt.savefig(os.path.join(figures_dir, 'gross_profits_last10_cdf.png'))
-plt.close()
-
-sorted_excess_cda_buy_last10 = np.sort(excess_profits_buy_cda_ind_last10)
-cumulative_excess_cda_buy_last10 = np.arange(len(sorted_excess_cda_buy_last10)) / len(sorted_excess_cda_buy_last10)
-sorted_excess_cda_sell_last10 = np.sort(excess_profits_sell_cda_ind_last10)
-cumulative_excess_cda_sell_last10 = np.arange(len(sorted_excess_cda_sell_last10)) / len(sorted_excess_cda_sell_last10)
-sorted_excess_flow30_buy_last10 = np.sort(excess_profits_buy_flow30_ind_last10)
-cumulative_excess_flow30_buy_last10 = np.arange(len(sorted_excess_flow30_buy_last10)) / len(sorted_excess_flow30_buy_last10)
-sorted_excess_flow30_sell_last10 = np.sort(excess_profits_sell_flow30_ind_last10)
-cumulative_excess_flow30_sell_last10 = np.arange(len(sorted_excess_flow30_sell_last10)) / len(sorted_excess_flow30_sell_last10)
-sorted_excess_flow60_buy_last10 = np.sort(excess_profits_buy_flow60_ind_last10)
-cumulative_excess_flow60_buy_last10 = np.arange(len(sorted_excess_flow60_buy_last10)) / len(sorted_excess_flow60_buy_last10)
-sorted_excess_flow60_sell_last10 = np.sort(excess_profits_sell_flow60_ind_last10)
-cumulative_excess_flow60_sell_last10 = np.arange(len(sorted_excess_flow60_sell_last10)) / len(sorted_excess_flow60_sell_last10)
-
-plt.plot(sorted_excess_cda_buy_last10, cumulative_excess_cda_buy_last10, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
-plt.plot(sorted_excess_cda_sell_last10, cumulative_excess_cda_sell_last10, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_excess_flow30_buy_last10, cumulative_excess_flow30_buy_last10, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
-plt.plot(sorted_excess_flow30_sell_last10, cumulative_excess_flow30_sell_last10, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
-plt.plot(sorted_excess_flow60_buy_last10, cumulative_excess_flow60_buy_last10, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
-plt.plot(sorted_excess_flow60_sell_last10, cumulative_excess_flow60_sell_last10, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
-plt.title('CDF of Excess Profits')
-plt.xlabel('Excess Profits')
-plt.ylabel('Cumulative Probability')
-plt.grid(True)
-plt.legend(loc='upper left')
-plt.savefig(os.path.join(figures_dir, 'excess_profits_last10_cdf.png'))
-plt.close()
-
-
-#### groups #### 
 # all periods
 sorted_gross_cda_buy_group = np.sort(regress_data_period[regress_data_period['format'] == 'CDA']['buyer_realized_surplus'].tolist())
 cumulative_gross_cda_buy_group = np.arange(len(sorted_gross_cda_buy_group)) / len(sorted_gross_cda_buy_group)
@@ -1485,104 +1341,5 @@ plt.ylabel('Cumulative Probability')
 plt.grid(True)
 plt.legend(loc='lower right')
 plt.savefig(os.path.join(figures_dir, 'group_gross_profits_last10_cdf.png'))
-plt.close()
-
-# excess profits
-# all periods
-sorted_excess_cda_group = np.sort(regress_data_period[regress_data_period['format'] == 'CDA']['gross_diff'].tolist())
-cumulative_excess_cda_group = np.arange(len(sorted_excess_cda_group)) / len(sorted_excess_cda_group)
-sorted_excess_flow30_group = np.sort(regress_data_period[regress_data_period['format'] == 'Flow30']['gross_diff'].tolist())
-cumulative_excess_flow30_group = np.arange(len(sorted_excess_flow30_group)) / len(sorted_excess_flow30_group)
-sorted_excess_flow60_group = np.sort(regress_data_period[regress_data_period['format'] == 'Flow60']['gross_diff'].tolist())
-cumulative_excess_flow60_group = np.arange(len(sorted_excess_flow60_group)) / len(sorted_excess_flow60_group)
-
-plt.plot(sorted_excess_cda_group, cumulative_excess_cda_group, marker=',', linestyle='solid', markersize=5, label='CDA')
-plt.plot(sorted_excess_flow30_group, cumulative_excess_flow30_group, marker=',', linestyle='dashed', markersize=5, label='Flow30')
-plt.plot(sorted_excess_flow60_group, cumulative_excess_flow60_group, marker=',', linestyle='dotted', markersize=5, label='Flow60')
-
-plt.title('CDF of Normalized Gross Profits')
-plt.xlabel('Gross - CE Profits (buy - sell)')
-plt.ylabel('Cumulative Probability')
-plt.grid(True)
-plt.legend(loc='lower right')
-plt.savefig(os.path.join(figures_dir, 'group_excess_profits_cdf.png'))
-plt.close()
-
-
-########## percent of order volume executed  ##########
-
-plt.plot(sorted_executed_percent_buy_cda_all20, cumulative_prob_executed_percent_buy_cda_all20, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
-plt.plot(sorted_executed_percent_sell_cda_all20, cumulative_prob_executed_percent_sell_cda_all20, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_executed_percent_buy_flow30_all20, cumulative_prob_executed_percent_buy_flow30_all20, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
-plt.plot(sorted_executed_percent_sell_flow30_all20, cumulative_prob_executed_percent_sell_flow30_all20, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
-plt.plot(sorted_executed_percent_buy_flow60_all20, cumulative_prob_executed_percent_buy_flow60_all20, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
-plt.plot(sorted_executed_percent_sell_flow60_all20, cumulative_prob_executed_percent_sell_flow60_all20, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
-plt.title('CDF of Executed Order Volume (T1 - T20)')
-plt.xlabel('%Executed Order Volume')
-plt.ylabel('Cumulative Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'executed_order_volume_percent_cdf.png'))
-plt.close()
-
-plt.plot(sorted_executed_percent_buy_cda_first10, cumulative_prob_executed_percent_buy_cda_first10, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
-plt.plot(sorted_executed_percent_sell_cda_first10, cumulative_prob_executed_percent_sell_cda_first10, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_executed_percent_buy_flow30_first10, cumulative_prob_executed_percent_buy_flow30_first10, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
-plt.plot(sorted_executed_percent_sell_flow30_first10, cumulative_prob_executed_percent_sell_flow30_first10, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
-plt.plot(sorted_executed_percent_buy_flow60_first10, cumulative_prob_executed_percent_buy_flow60_first10, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
-plt.plot(sorted_executed_percent_sell_flow60_first10, cumulative_prob_executed_percent_sell_flow60_first10, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
-plt.title('CDF of Executed Order Volume (T1 - T10)')
-plt.xlabel('%Executed Order Volume')
-plt.ylabel('Cumulative Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'executed_order_volume_percent_first10_cdf.png'))
-plt.close()
-
-plt.plot(sorted_executed_percent_buy_cda_last10, cumulative_prob_executed_percent_buy_cda_last10, marker=',', linestyle='solid', color=(0, 128/255, 0), markersize=5, label='CDA Buyer')
-plt.plot(sorted_executed_percent_sell_cda_last10, cumulative_prob_executed_percent_sell_cda_last10, marker=',', linestyle='solid', color=(128/255, 0, 128/255), markersize=5, label='CDA Seller')
-plt.plot(sorted_executed_percent_buy_flow30_last10, cumulative_prob_executed_percent_buy_flow30_last10, marker=',', linestyle='dashed', color=(0, 128/255, 0), markersize=5, label='Flow30 Buyer')
-plt.plot(sorted_executed_percent_sell_flow30_last10, cumulative_prob_executed_percent_sell_flow30_last10, marker=',', linestyle='dashed', color=(128/255, 0, 128/255), markersize=5, label='Flow30 Seller')
-plt.plot(sorted_executed_percent_buy_flow60_last10, cumulative_prob_executed_percent_buy_flow60_last10, marker=',', linestyle='dotted', color=(0, 128/255, 0), markersize=5, label='Flow60 Buyer')
-plt.plot(sorted_executed_percent_sell_flow60_last10, cumulative_prob_executed_percent_sell_flow60_last10, marker=',', linestyle='dotted', color=(128/255, 0, 128/255), markersize=5, label='Flow60 Seller')
-plt.title('CDF of Executed Order Volume (T11 - T20)')
-plt.xlabel('%Executed Order Volume')
-plt.ylabel('Cumulative Probability')
-plt.legend()
-plt.savefig(os.path.join(figures_dir, 'executed_order_volume_percent_last10_cdf.png'))
-plt.close()
-
-
-
-
-# compress to 120s by taking the mean of each timestamp
-compress_df_cda = market_per_second_cda[(market_per_second_cda['group_id'] == 1)].copy()
-compress_df_cda['timestamp'] = compress_df_cda['timestamp'] % round_length
-compress_df_cda['timestamp'] = compress_df_cda['timestamp'].replace(0, round_length)
-compress_df_cda['mean_cumulative_quantity_percent'] = compress_df_cda['mean_cumulative_quantity'] / compress_df_cda['ce_quantity']
-summary_cda = compress_df_cda.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
-
-compress_df_flow30 = market_per_second_flow[(market_per_second_flow['group_id'] == 1)].copy()
-compress_df_flow30['timestamp'] = compress_df_flow30['timestamp'] % round_length
-compress_df_flow30['timestamp'] = compress_df_flow30['timestamp'].replace(0, round_length)
-compress_df_flow30['mean_cumulative_quantity_percent'] = compress_df_flow30['mean_cumulative_quantity'] / compress_df_flow30['ce_quantity']
-summary_flow30 = compress_df_flow30.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
-
-compress_df_flow60 = market_per_second_flow[(market_per_second_flow['group_id'] == 6)].copy()
-compress_df_flow60['timestamp'] = compress_df_flow60['timestamp'] % round_length
-compress_df_flow60['timestamp'] = compress_df_flow60['timestamp'].replace(0, round_length)
-compress_df_flow60['mean_cumulative_quantity_percent'] = compress_df_flow60['mean_cumulative_quantity'] / compress_df_flow60['ce_quantity']
-summary_flow60 = compress_df_flow60.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
-
-plt.figure(figsize=(8, 5))
-plt.plot(summary_cda['timestamp'], summary_cda['mean_cumulative_quantity_percent'], linestyle='solid', c='green', label='CDA')
-plt.plot(summary_flow30['timestamp'], summary_flow30['mean_cumulative_quantity_percent'], c='green', linestyle='dashed', label='Flow30')
-plt.plot(summary_flow60['timestamp'], summary_flow60['mean_cumulative_quantity_percent'], c='green', linestyle='dotted', label='Flow60')
-plt.hlines(y=1, xmin=1, xmax=round_length, colors='plum', linestyles='--')
-plt.xticks(np.arange(1, round_length + 2, 10), np.arange(0, round_length + 1, 10))
-plt.xlabel('Time')
-plt.ylabel('Percent')
-plt.ylim(0, 1.1)
-plt.legend(loc='lower right')
-# plt.title('Flow60 Cumulative / CE Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_cumsum_compress_all.png'))
 plt.close()
 

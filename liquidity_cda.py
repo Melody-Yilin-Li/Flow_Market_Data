@@ -1,37 +1,9 @@
-import numpy as np 
-import pandas as pd
-import itertools 
-import matplotlib.pyplot as plt 
-from matplotlib.ticker import StrMethodFormatter
-plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) # 2 decimal places
-import seaborn as sns
-import faulthandler; faulthandler.enable()
-from functools import reduce                # Import reduce function
-from sys import exit
+from helpers import *
+from common import *
+from config import *
 
 directory = '/Users/YilinLi/Documents/UCSC/Flow Data/'
-
-
-# Replace NaN by empty dict
-def replace_nans_with_dict(series):
-    for idx in series[series.isnull()].index:
-        series.at[idx] = {}
-    return series
-
-# Explodes list and dicts
-def df_explosion(df, col_name:str):
-    if df[col_name].isna().any():
-        df[col_name] = replace_nans_with_dict(df[col_name])
-    df.reset_index(drop=True, inplace=True)
-    df1 = pd.DataFrame(df.loc[:,col_name].values.tolist())
-    df = pd.concat([df,df1], axis=1)
-    df.drop([col_name], axis=1, inplace=True)
-    return df
-
 plt.close()
-
-# input session constants 
-from config import *
 
 def main():
     print("params imported")
@@ -40,8 +12,6 @@ if __name__ == "__main__":
      main()
 
 liquidity_cda_period = pd.DataFrame()
-
-colors = ['lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', 'lightcoral', 'lightskyblue', 'pink'] # add more colors with more than 6 groups
 
 def get_best_bids_asks(orders):
     bids = []
@@ -134,5 +104,3 @@ for g in range(1, num_groups_cda + 1):
 
 liquidity_cda_period['liquidity'] = liquidity_cda_period['weighted_price (buy_liquidity_shares)'] - liquidity_cda_period['weighted_price (sell_liquidity_shares)']
 liquidity_cda_period['ppi'] = liquidity_cda_period['weighted_price (buy_liquidity_shares)'] - liquidity_cda_period['weighted_price (sell_liquidity_shares)']
-
-# print(liquidity_cda_period, liquidity_cda_period.columns)

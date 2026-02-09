@@ -1,3 +1,7 @@
+from common import *
+from helpers import *
+from config import *
+
 plt.figure(figsize=(18, 7))
 plt.scatter(data=market_per_second_cda[(market_per_second_cda['clearing_price'] > 0) \
                                          & (market_per_second_cda['group_id'] == 1)], \
@@ -29,7 +33,7 @@ plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
 plt.xlabel('Time')
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
-# plt.title('CDA Transaction Prices vs Time')
+plt.title('CDA Transaction Prices vs Time')
 plt.savefig(os.path.join(figures_dir, 'groups_mean_prices.png'))
 plt.close()
 

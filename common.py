@@ -1,9 +1,11 @@
 # Common imports for all files.
 import numpy as np 
 import pandas as pd
-import itertools 
+from tabulate import tabulate 
 import statistics
 import matplotlib.pyplot as plt 
+from matplotlib import rc
+rc('text',usetex=True)
 plt.rcParams.update({
     'font.family': 'serif',
     'font.size': 16,
@@ -17,3 +19,5 @@ plt.rcParams.update({
 from matplotlib.ticker import StrMethodFormatter
 plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) # 2 decimal places
 import faulthandler; faulthandler.enable()
+
+from stargazer.stargazer import Stargazer

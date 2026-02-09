@@ -1,35 +1,8 @@
-import numpy as np 
-import pandas as pd
-import itertools 
-import matplotlib.pyplot as plt 
-from matplotlib.ticker import StrMethodFormatter
-plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) # 2 decimal places
-import seaborn as sns
-import faulthandler; faulthandler.enable()
-from functools import reduce                # Import reduce function
-from sys import exit
-import heapq
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
-
-# Replace NaN by empty dict
-def replace_nans_with_dict(series):
-    for idx in series[series.isnull()].index:
-        series.at[idx] = {}
-    return series
-
-# Explodes list and dicts
-def df_explosion(df, col_name:str):
-    if df[col_name].isna().any():
-        df[col_name] = replace_nans_with_dict(df[col_name])
-    df.reset_index(drop=True, inplace=True)
-    df1 = pd.DataFrame(df.loc[:,col_name].values.tolist())
-    df = pd.concat([df,df1], axis=1)
-    df.drop([col_name], axis=1, inplace=True)
-    return df
-
-
-# input session constants 
+from helpers import *
+from common import *
 from config import *
+
+directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
 
 def main():
     print("params imported")
@@ -39,8 +12,6 @@ if __name__ == "__main__":
 
      
 liquidity_flow_period = pd.DataFrame()
-
-colors = ['lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', 'lightcoral', 'lightskyblue', 'pink'] # add more colors with more than 6 groups
 
  # Define the integral of the function mx + b from x1 to x2
 def integral_line(m, b, start, end):
