@@ -1,47 +1,8 @@
-import numpy as np 
-import pandas as pd
-from collections import defaultdict 
-import matplotlib.pyplot as plt 
-plt.rcParams.update({
-    'font.family': 'serif',
-    'font.size': 16,
-    'axes.titlesize': 16,
-    'axes.labelsize': 16,
-    'axes.titleweight': 'bold',
-    'axes.labelweight': 'bold',
-    'xtick.labelsize': 16,
-    'ytick.labelsize': 16,
-})
-
-from matplotlib.ticker import StrMethodFormatter
-plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) # 2 decimal places
-import seaborn as sns
-import faulthandler; faulthandler.enable()
-from functools import reduce                # Import reduce function
-from sys import exit
-
-# input session constants 
+from helpers import *
+from common import *
 from config import *
 
 directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
-
-
-# Replace NaN by empty dict
-def replace_nans_with_dict(series):
-    for idx in series[series.isnull()].index:
-        series.at[idx] = {}
-    return series
-
-# Explodes list and dicts
-def df_explosion(df, col_name:str):
-    if df[col_name].isna().any():
-        df[col_name] = replace_nans_with_dict(df[col_name])
-    df.reset_index(drop=True, inplace=True)
-    df1 = pd.DataFrame(df.loc[:,col_name].values.tolist())
-    df = pd.concat([df,df1], axis=1)
-    df.drop([col_name], axis=1, inplace=True)
-    return df
-
 plt.close()
 
 def main():
@@ -53,14 +14,6 @@ if __name__ == "__main__":
       
 flow_trader_period = pd.DataFrame()
 cda_trader_period = pd.DataFrame()
-
-
-# read in data 
-colors = [
-    'lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', 'lightcoral', 'lightskyblue', 'pink',
-    'peachpuff', 'thistle', 'honeydew', 'powderblue', 'mistyrose', 'palegreen', 'paleturquoise', 'lightyellow',
-    'cornsilk', 'lemonchiffon', 'azure', 'aliceblue', 'seashell', 'beige', 'oldlace', 'floralwhite'
-]
 
 for g in range(1, num_groups_cda + 1):
     name = 'group' + str(g)
@@ -316,7 +269,7 @@ plt.title('CDF of the Realized Surplus (T1-T20)')
 plt.xlabel('Realized Surplus')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow30ealized_surplus_cdf_all20.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow_realized_surplus_cdf_all20.png'))
 plt.close()
 
 plt.figure(figsize=(8, 6))
@@ -332,7 +285,7 @@ plt.title('CDF of the Realized Surplus')
 plt.xlabel('Realized Surplus')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow30ealized_surplus_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'groups_flow_realized_surplus_cdf_all.png'))
 plt.close()
 
 
