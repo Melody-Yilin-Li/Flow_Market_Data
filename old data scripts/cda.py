@@ -43,34 +43,34 @@ if __name__ == "__main__":
 
 # df for market prices and rates/quantities for all groups 
 # create a list of dfs to be merged 
-groups_mkt_cda = []
+list_market_cda = []
 prices = []
 quantities = []
 cum_quantities = []
 moving_averages = []
-delta_prices_cda_full = []
-delta_prices_cda_half = []
-delta_prices_cda_first = []
+delta_prices_cda_all20 = []
+delta_prices_cda_last10 = []
+delta_prices_cda_first10 = []
 regress_cda = pd.DataFrame()
 regress_cda_period = pd.DataFrame()
 regress_cda_second = pd.DataFrame()
 
 colors = ['lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', 'peachpuff', 'lightskyblue'] # add more colors with more than 6 groups
-volume_volatility_cda_full = []
-volume_volatility_cda_half = []
-volume_volatility_cda_first = []
+volume_volatility_cda_all20 = []
+volume_volatility_cda_last10 = []
+volume_volatility_cda_first10 = []
 transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_groups_cda + 1)]
 
 
 for g in range(1, num_groups_cda + 1):
     name = 'group' + str(g)
     group = []
-    delta_price_full = []
-    delta_price_half = []
-    delta_price_first = []
+    delta_price_all20 = []
+    delta_price_last10 = []
+    delta_price_first10 = []
 
-    for r in range(1, num_rounds - prac_rounds + 1): 
-        path_mkt = directory + 'cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+    for r in range(1, num_periods - prac_periods + 1): 
+        path_mkt = directory + 'cda{}/{}/1_market.json'.format(g, r + prac_periods)
         mkt = pd.read_json(
             path_mkt,
         )
@@ -78,15 +78,15 @@ for g in range(1, num_groups_cda + 1):
         mkt = mkt[(mkt['before_transaction'] == False)].reset_index(drop=True)
         mkt['clearing_price'].fillna(method='bfill', inplace=True)
         mkt['clearing_price'].fillna(method='ffill', inplace=True)
-        delta_price_full.extend(mkt['clearing_price'].diff())
-        if r > (num_rounds - prac_rounds) // 2:
-            delta_price_half.extend(mkt['clearing_price'].diff())
+        delta_price_all20.extend(mkt['clearing_price'].diff())
+        if r > (num_periods - prac_periods) // 2:
+            delta_price_last10.extend(mkt['clearing_price'].diff())
         else:
-            delta_price_first.extend(mkt['clearing_price'].diff())
+            delta_price_first10.extend(mkt['clearing_price'].diff())
         mkt.fillna(0, inplace=True)
         mkt = mkt.drop(columns=['id_in_subsession', 'before_transaction'])
         mkt['moving_average'] = mkt['clearing_price'].rolling(window=moving_average_size).mean()
-        path_par = directory + 'cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
+        path_par = directory + 'cda{}/{}/1_participant.json'.format(g, r + prac_periods)
         par = pd.read_json(
             path_par,
             )
@@ -119,18 +119,18 @@ for g in range(1, num_groups_cda + 1):
         mkt['transactions'] = (mkt['clearing_rate'] > 0).sum()
 
 
-        volume_volatility_cda_full.extend(mkt[mkt['clearing_rate'] > 0]['clearing_rate'].tolist())
-        if r > (num_rounds - prac_rounds) // 2:
-            volume_volatility_cda_half.extend(mkt[(mkt['clearing_rate'] > 0)]['clearing_rate'].tolist())
+        volume_volatility_cda_all20.extend(mkt[mkt['clearing_rate'] > 0]['clearing_rate'].tolist())
+        if r > (num_periods - prac_periods) // 2:
+            volume_volatility_cda_last10.extend(mkt[(mkt['clearing_rate'] > 0)]['clearing_rate'].tolist())
         else:
-            volume_volatility_cda_first.extend(mkt[(mkt['clearing_rate'] > 0)]['clearing_rate'].tolist())
+            volume_volatility_cda_first10.extend(mkt[(mkt['clearing_rate'] > 0)]['clearing_rate'].tolist())
 
 
         # get df for each second
         reg_df_sec = mkt.copy()
-        reg_df_sec['round'] = r
+        reg_df_sec['period'] = r
         reg_df_sec['group'] = g
-        reg_df_sec['block'] = reg_df_sec['round'] // ((num_rounds - prac_rounds) // blocks) + (reg_df_sec['round'] % ((num_rounds - prac_rounds) // blocks) != 0)
+        reg_df_sec['block'] = reg_df_sec['period'] // ((num_periods - prac_periods) // blocks) + (reg_df_sec['period'] % ((num_periods - prac_periods) // blocks) != 0)
         reg_df_sec['format'] = 'CDA'
         reg_df_sec['ce_price'] = ce_price[r - 1]
         reg_df_sec['ce_quantity'] = ce_quantity[r - 1]
@@ -151,9 +151,9 @@ for g in range(1, num_groups_cda + 1):
         })).reset_index()
         result_reg_df['weighted_price'].fillna(method='ffill', inplace=True)
         result_reg_df['weighted_price'].fillna(method='bfill', inplace=True)
-        result_reg_df['round'] = r
+        result_reg_df['period'] = r
         result_reg_df['group'] = g
-        result_reg_df['block'] = result_reg_df['round'] // ((num_rounds - prac_rounds) // blocks) + (result_reg_df['round'] % ((num_rounds - prac_rounds) // blocks) != 0)
+        result_reg_df['block'] = result_reg_df['period'] // ((num_periods - prac_periods) // blocks) + (result_reg_df['period'] % ((num_periods - prac_periods) // blocks) != 0)
         result_reg_df['format'] = 'CDA'
         result_reg_df['price_change'] = result_reg_df['weighted_price'].diff()
         result_reg_df['price_change_int'] = result_reg_df['price_change_int'] * result_reg_df['quantity'] / result_reg_df['quantity'].sum()
@@ -169,9 +169,9 @@ for g in range(1, num_groups_cda + 1):
         group.append(mkt)
 
 
-    delta_prices_cda_full.append(delta_price_full)
-    delta_prices_cda_half.append(delta_price_half)
-    delta_prices_cda_first.append(delta_price_first)
+    delta_prices_cda_all20.append(delta_price_all20)
+    delta_prices_cda_last10.append(delta_price_last10)
+    delta_prices_cda_first10.append(delta_price_first10)
     df = pd.concat(group, ignore_index=True, sort=False)
 
     price = 'clearing_price_' + str(g)
@@ -192,22 +192,22 @@ for g in range(1, num_groups_cda + 1):
     # plt.plot(df[quantity][np.isfinite(df[quantity].astype(np.double))], df[price][np.isfinite(df[price].astype(np.double))], linestyle='dashed', marker='o')
     # plt.show()
     
-    groups_mkt_cda.append(df)
+    list_market_cda.append(df)
     
 # merge the list of df's
-data_groups_mkt_cda = reduce(lambda left, right:     # Merge DataFrames in list
+market_per_second_cda = reduce(lambda left, right:     # Merge DataFrames in list
                      pd.merge(left , right,
                               on = ['timestamp']),
-                     groups_mkt_cda)
+                     list_market_cda)
 
-data_groups_mkt_cda = data_groups_mkt_cda.replace(0, np.NaN)
-data_groups_mkt_cda['mean_clearing_price'] = data_groups_mkt_cda[prices].mean(skipna=True, axis=1)
-data_groups_mkt_cda['mean_moving_average_price'] = data_groups_mkt_cda[moving_averages].mean(skipna=True, axis=1)
-data_groups_mkt_cda['mean_clearing_quantity'] = data_groups_mkt_cda[quantities].mean(skipna=True, axis=1)
-data_groups_mkt_cda['mean_cumulative_quantity'] = data_groups_mkt_cda[cum_quantities].mean(skipna=True, axis=1)
-data_groups_mkt_cda = data_groups_mkt_cda.replace(np.NaN, 0)
-data_groups_mkt_cda['ce_price'] = [p for p in ce_price for i in range(round_length - leave_out_seconds - leave_out_seconds_end)]
-data_groups_mkt_cda['ce_quantity'] = [q for q in ce_quantity for i in range(round_length - leave_out_seconds - leave_out_seconds_end)]
+market_per_second_cda = market_per_second_cda.replace(0, np.NaN)
+market_per_second_cda['mean_clearing_price'] = market_per_second_cda[prices].mean(skipna=True, axis=1)
+market_per_second_cda['mean_moving_average_price'] = market_per_second_cda[moving_averages].mean(skipna=True, axis=1)
+market_per_second_cda['mean_clearing_quantity'] = market_per_second_cda[quantities].mean(skipna=True, axis=1)
+market_per_second_cda['mean_cumulative_quantity'] = market_per_second_cda[cum_quantities].mean(skipna=True, axis=1)
+market_per_second_cda = market_per_second_cda.replace(np.NaN, 0)
+market_per_second_cda['ce_price'] = [p for p in ce_price for i in range(round_length - leave_out_seconds - leave_out_seconds_end)]
+market_per_second_cda['ce_quantity'] = [q for q in ce_quantity for i in range(round_length - leave_out_seconds - leave_out_seconds_end)]
 
 # plot clearing prices in all rounds for all groups 
 
@@ -215,12 +215,12 @@ data_groups_mkt_cda['ce_quantity'] = [q for q in ce_quantity for i in range(roun
 plt.figure(figsize=(20, 5))
 for l in range(len(prices)): 
     lab = '_group' + str(l + 1)
-    plt.scatter(data=data_groups_mkt_cda[data_groups_mkt_cda[prices[l]] > 0], x='timestamp', y=prices[l], c=colors[l], s=5,
+    plt.scatter(data=market_per_second_cda[market_per_second_cda[prices[l]] > 0], x='timestamp', y=prices[l], c=colors[l], s=5,
         label=lab
         )
-plt.scatter(data=data_groups_mkt_cda[data_groups_mkt_cda['mean_clearing_price'] > 0], x='timestamp', y='mean_clearing_price', c='green', label='Mean Price', s=10,)
-plt.step(data=data_groups_mkt_cda, x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
-for x in [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_rounds - prac_rounds)]:
+plt.scatter(data=market_per_second_cda[market_per_second_cda['mean_clearing_price'] > 0], x='timestamp', y='mean_clearing_price', c='green', label='Mean Price', s=10,)
+plt.step(data=market_per_second_cda, x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
+for x in [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]:
     plt.vlines(x, ymin=0, ymax=20, colors='lightgrey', linestyles='dotted')
 plt.legend(bbox_to_anchor=(1, 1),
     loc='upper left', 
@@ -237,9 +237,9 @@ plt.close()
 plt.figure(figsize=(20, 5))
 for l in range(len(cum_quantities)): 
     lab = '_group' + str(l + 1)
-    plt.step(data=data_groups_mkt_cda, x='timestamp', y=cum_quantities[l], where='pre', c=colors[l], label=lab)
-plt.step(data=data_groups_mkt_cda, x='timestamp', y='mean_cumulative_quantity', where='pre', c='green', label='Mean', linestyle='solid')
-plt.step(data=data_groups_mkt_cda, x='timestamp', y='ce_quantity', where='pre', c='plum', label='CE Quantity')
+    plt.step(data=market_per_second_cda, x='timestamp', y=cum_quantities[l], where='pre', c=colors[l], label=lab)
+plt.step(data=market_per_second_cda, x='timestamp', y='mean_cumulative_quantity', where='pre', c='green', label='Mean', linestyle='solid')
+plt.step(data=market_per_second_cda, x='timestamp', y='ce_quantity', where='pre', c='plum', label='CE Quantity')
 plt.legend(bbox_to_anchor=(1, 1),
     loc='upper left', 
     borderaxespad=0.5)
@@ -251,23 +251,23 @@ plt.savefig('groups_cda_cumsum.png')
 plt.close()
 
 # participant-level data 
-groups_par_cda = []
+list_participant_cda = []
 
 for g in range(1, num_groups_cda + 1): 
     # dictionary for market prices and rates/quantities 
     # create a list of dataframes to be concatenated after groupby 
     data_mkt = []
 
-    # each round X is denoted as 'mktX'
+    # each period X is denoted as 'mktX'
     market = {}
-    for r in range(1, num_rounds - prac_rounds + 1):
+    for r in range(1, num_periods - prac_periods + 1):
         name = 'mkt' + str(r)
-        # path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+        # path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_market.json'.format(g, r + prac_periods)
         # market[name] = pd.read_json(
         #     path,
         #     )
         # market[name] = market[name][market[name]['before_transaction'] == False]
-        market[name] = groups_mkt_cda[g - 1].iloc[(round_length - leave_out_seconds - leave_out_seconds_end) * (r - 1): (round_length - leave_out_seconds - leave_out_seconds_end) * r].copy()
+        market[name] = list_market_cda[g - 1].iloc[(round_length - leave_out_seconds - leave_out_seconds_end) * (r - 1): (round_length - leave_out_seconds - leave_out_seconds_end) * r].copy()
         market[name].columns = ['timestamp', 'clearing_price', 'moving_average', 'cumulative_quantity', 'clearing_rate', 'transactions']
         # market[name].fillna(0, inplace=True)
         market[name]['unit_weighted_price'] = market[name]['clearing_price'] * market[name]['clearing_rate']
@@ -279,11 +279,11 @@ for g in range(1, num_groups_cda + 1):
         # df = market[name].groupby('id_in_subsession').aggregate({'clearing_rate': 'sum', 'unit_weighted_price': 'sum'}).reset_index()
         df['unit_weighted_price'] = df['unit_weighted_price'] / df['clearing_rate']
         df['ce_price'] = ce_price[r - 1]
-        df['round'] = r
+        df['period'] = r
         df['group_id'] = g
         # df['transactions'] = (market[name]['clearing_rate'] > 0).sum()
         df.columns = ['quantity_{}'.format(g), 'unit_weighted_price_{}'.format(g), 'transactions_{}'.format(g),
-            'ce_price_{}'.format(g), 'round', 'group_id',]
+            'ce_price_{}'.format(g), 'period', 'group_id',]
         data_mkt.append(df)
         # print(name, '\n', market[name])
 
@@ -293,11 +293,11 @@ for g in range(1, num_groups_cda + 1):
     # create a list of dataframes to be concatenated after groupby 
     data_par = []
 
-    # each round X is denoted as 'parX'
+    # each period X is denoted as 'parX'
     participant = {}
-    for r in range(1, num_rounds - prac_rounds + 1):
+    for r in range(1, num_periods - prac_periods + 1):
         name = 'par' + str(r)
-        path = directory + 'cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
+        path = directory + 'cda{}/{}/1_participant.json'.format(g, r + prac_periods)
         participant[name] = pd.read_json(
             path,
             )
@@ -339,40 +339,40 @@ for g in range(1, num_groups_cda + 1):
         tmp_df = participant[name][(participant[name]['before_transaction'] == False) & (participant[name]['timestamp'] == round_length - 1)]
         # print("TMP", tmp_df[['id_in_group', 'transacted_quantity', 'cash','inventory','quantity', 'fill_quantity']], tmp_df.columns)
         # exit(0)
-        # print('round', r)
+        # print('period', r)
         df = tmp_df.groupby('id_in_subsession').aggregate({'cash': 'sum', 'fill_quantity': 'sum', 'quantity': 'sum', 'transacted_quantity': 'sum',}).reset_index()
         df['ce_profit'] = ce_profit[r - 1]
         df['ce_quantity'] = ce_quantity[r - 1] 
-        df['payoff_percent'] = round(df['cash'] / df['ce_profit'], 4)
-        df['contract_percent'] = round(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
-        df['round'] = r
+        df['payoff_percent'] = period(df['cash'] / df['ce_profit'], 4)
+        df['contract_percent'] = period(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
+        df['period'] = r
         df['orders'] = number_of_orders
         # df['transactions'] = transactions
         df['id_in_subsession'] = g
         df['transacted_quantity'] = df['transacted_quantity'] / 2
         df['extra_traded_quantity'] = df['transacted_quantity'] - df['fill_quantity'] / 2
         df.columns = ['group_id', 'payoff_{}'.format(g), 'fill_quantity_{}'.format(g), 'contract_quantity_{}'.format(g), 'transacted_quantity_{}'.format(g), 'ce_profit_{}'.format(g), 
-            'ce_quantity_{}'.format(g), 'payoff_percent_{}'.format(g), 'contract_percent_{}'.format(g), 'round', 'orders_{}'.format(g), 'extra_traded_quantity_{}'.format(g)]
+            'ce_quantity_{}'.format(g), 'payoff_percent_{}'.format(g), 'contract_percent_{}'.format(g), 'period', 'orders_{}'.format(g), 'extra_traded_quantity_{}'.format(g)]
         df.fillna(0, inplace=True)
         data_par.append(df)
 
     ########## Between-period ##########
     between_df1 = pd.concat(data_mkt, ignore_index=True, axis=0)
     between_df2 = pd.concat(data_par, ignore_index=True, axis=0)
-    between_df = pd.merge(between_df1, between_df2, on=['group_id', 'round'])
+    between_df = pd.merge(between_df1, between_df2, on=['group_id', 'period'])
     between_df['order_size_{}'.format(g)] = 2 * between_df['quantity_{}'.format(g)] / between_df['orders_{}'.format(g)] 
     between_df = between_df.drop(columns=['group_id'])
     # print('here\n', between_df)
 
-    groups_par_cda.append(between_df)
+    list_participant_cda.append(between_df)
 
 
 # merge the list of df's
-data_groups_par_cda = reduce(lambda left, right:     # Merge DataFrames in list
+participant_per_second_cda = reduce(lambda left, right:     # Merge DataFrames in list
                      pd.merge(left , right,
-                              on = ['round']),
-                     groups_par_cda)
-data_groups_par_cda = data_groups_par_cda.replace(0, np.NaN)
+                              on = ['period']),
+                     list_participant_cda)
+participant_per_second_cda = participant_per_second_cda.replace(0, np.NaN)
 payoffs = ['payoff_percent_{}'.format(g) for g in range(1, num_groups_cda + 1)]
 contracts = ['contract_percent_{}'.format(g) for g in range(1, num_groups_cda + 1)]
 unit_weighted = ['unit_weighted_price_{}'.format(g) for g in range(1, num_groups_cda + 1)]
@@ -382,23 +382,23 @@ orders = ['orders_{}'.format(g) for g in range(1, num_groups_cda + 1)]
 transacted_quantities = ['transacted_quantity_{}'.format(g) for g in range(1, num_groups_cda + 1)]
 extra_traded_quantities = ['extra_traded_quantity_{}'.format(g) for g in range(1, num_groups_cda + 1)]
 order_sizes = ['order_size_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-data_groups_par_cda['mean_realized_surplus'] = data_groups_par_cda[payoffs].mean(skipna=True, axis=1)
-data_groups_par_cda['mean_contract_execution'] = data_groups_par_cda[contracts].mean(skipna=True, axis=1)
-data_groups_par_cda['mean_unit_weighted_price'] = data_groups_par_cda[unit_weighted].mean(skipna=True, axis=1)
-data_groups_par_cda['mean_quantity'] = data_groups_par_cda[quantities].mean(skipna=True, axis=1)
-data_groups_par_cda = data_groups_par_cda.replace(np.NaN, 0)
+participant_per_second_cda['mean_realized_surplus'] = participant_per_second_cda[payoffs].mean(skipna=True, axis=1)
+participant_per_second_cda['mean_contract_execution'] = participant_per_second_cda[contracts].mean(skipna=True, axis=1)
+participant_per_second_cda['mean_unit_weighted_price'] = participant_per_second_cda[unit_weighted].mean(skipna=True, axis=1)
+participant_per_second_cda['mean_quantity'] = participant_per_second_cda[quantities].mean(skipna=True, axis=1)
+participant_per_second_cda = participant_per_second_cda.replace(np.NaN, 0)
 
 # realized surplus for all groups
 plt.figure(figsize=(8, 5))
 for l in range(len(payoffs)): 
     lab = '_group' + str(l + 1)
-    plt.plot(data_groups_par_cda['round'], data_groups_par_cda[payoffs[l]], linestyle='solid', c=colors[l], label=lab)
-plt.plot(data_groups_par_cda['round'], data_groups_par_cda['mean_realized_surplus'], linestyle='solid', c='green', label='Mean')
-plt.hlines(y=1, xmin=1, xmax=num_rounds-prac_rounds, colors='plum', linestyles='--')
+    plt.plot(participant_per_second_cda['period'], participant_per_second_cda[payoffs[l]], linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_cda['period'], participant_per_second_cda['mean_realized_surplus'], linestyle='solid', c='green', label='Mean')
+plt.hlines(y=1, xmin=1, xmax=num_periods-prac_periods, colors='plum', linestyles='--')
 plt.legend(loc='lower right')
 plt.ylim(0, 1.2)
 plt.xlabel('Period')
-plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
 plt.savefig('groups_cda_surplus.png')
@@ -408,13 +408,13 @@ plt.close()
 plt.figure(figsize=(8, 5))
 for l in range(len(contracts)): 
     lab = '_group' + str(l + 1)
-    plt.plot(data_groups_par_cda['round'], data_groups_par_cda[contracts[l]], linestyle='solid', c=colors[l], label=lab)
-plt.plot(data_groups_par_cda['round'], data_groups_par_cda['mean_contract_execution'], linestyle='solid', c='green', label='Mean')
-plt.hlines(y=1, xmin=1, xmax=num_rounds-prac_rounds, colors='plum', linestyles='--')
+    plt.plot(participant_per_second_cda['period'], participant_per_second_cda[contracts[l]], linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_cda['period'], participant_per_second_cda['mean_contract_execution'], linestyle='solid', c='green', label='Mean')
+plt.hlines(y=1, xmin=1, xmax=num_periods-prac_periods, colors='plum', linestyles='--')
 plt.legend(loc='lower right')
 plt.ylim(0, 1.2)
 plt.xlabel('Period')
-plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Filled Contract vs Period')
 plt.savefig('groups_cda_contract.png')
@@ -424,13 +424,13 @@ plt.close()
 plt.figure(figsize=(8, 5))
 for l in range(len(quantities)): 
     lab = '_group' + str(l + 1)
-    plt.plot(data_groups_par_cda['round'], data_groups_par_cda[quantities[l]], linestyle='solid', c=colors[l], label=lab)
-plt.plot(data_groups_par_cda['round'], data_groups_par_cda['mean_quantity'], linestyle='solid', c='green', label='Mean')
-plt.step(data=data_groups_par_cda, x='round', y='ce_quantity_1', where='mid', c='plum', label='CE Quantity')
+    plt.plot(participant_per_second_cda['period'], participant_per_second_cda[quantities[l]], linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_cda['period'], participant_per_second_cda['mean_quantity'], linestyle='solid', c='green', label='Mean')
+plt.step(data=participant_per_second_cda, x='period', y='ce_quantity_1', where='mid', c='plum', label='CE Quantity')
 plt.legend(loc='lower right')
 plt.ylim(0, 2000)
 plt.xlabel('Period')
-plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
 plt.savefig('groups_cda_quantity.png')
@@ -440,13 +440,13 @@ plt.close()
 plt.figure(figsize=(8, 5))
 for l in range(len(unit_weighted)): 
     lab = '_group' + str(l + 1)
-    plt.plot(data_groups_par_cda['round'], data_groups_par_cda[unit_weighted[l]], linestyle='solid', c=colors[l], label=lab)
-plt.plot(data_groups_par_cda['round'], data_groups_par_cda['mean_unit_weighted_price'], linestyle='solid', c='green', label='Mean')
-plt.step(data=data_groups_par_cda, x='round', y='ce_price_1', where='mid', c='plum', label='CE Price')
+    plt.plot(participant_per_second_cda['period'], participant_per_second_cda[unit_weighted[l]], linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_cda['period'], participant_per_second_cda['mean_unit_weighted_price'], linestyle='solid', c='green', label='Mean')
+plt.step(data=participant_per_second_cda, x='period', y='ce_price_1', where='mid', c='plum', label='CE Price')
 plt.legend(loc='lower right')
 plt.ylim(0, 20)
 plt.xlabel('Period')
-plt.xticks(np.arange(1, num_rounds - prac_rounds + 1), np.arange(1, num_rounds - prac_rounds + 1))
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Price')
 plt.title('Unit-Weighted Price vs Period')
 plt.savefig('groups_cda_unit_weighted_price.png')
@@ -455,7 +455,7 @@ plt.close()
 
 
 ########## ---------- summary_cda statistics ---------- ##########
-summary_cda = data_groups_par_cda[['round', 'ce_price_1'] + unit_weighted + payoffs + contracts + transacted_quantities + orders + order_sizes + transaction_numbers + extra_traded_quantities]
+summary_cda = participant_per_second_cda[['period', 'ce_price_1'] + unit_weighted + payoffs + contracts + transacted_quantities + orders + order_sizes + transaction_numbers + extra_traded_quantities]
 summary_cda = summary_cda.rename(columns={'ce_price_1': 'ce_price'})
 
 for g in range(1, num_groups_cda + 1):
@@ -472,112 +472,112 @@ for g in range(1, num_groups_cda + 1):
             summary_cda.at[ind, 'price_dev_{}'.format(g)] = abs(row['unit_weighted_price_{}'.format(g)] - row['ce_price'])
 
 
-price_deviation_cda_full = []
-price_deviation_cda_half = []
-price_deviation_cda_first = []
+price_deviation_cda_all20 = []
+price_deviation_cda_last10 = []
+price_deviation_cda_first10 = []
 price_deviation_cda_test = []
 
-realized_surplus_cda_full = []
-realized_surplus_cda_half = []
-realized_surplus_cda_first = []
+realized_surplus_cda_all20 = []
+realized_surplus_cda_last10 = []
+realized_surplus_cda_first10 = []
 realized_surplus_cda_test = []
 
-percent_contract_cda_full = []
-percent_contract_cda_half = []
-percent_contract_cda_first = []
+percent_contract_cda_all20 = []
+percent_contract_cda_last10 = []
+percent_contract_cda_first10 = []
 percent_contract_cda_test = []
 
-total_quantity_cda_full = []
-total_quantity_cda_half = []
-total_quantity_cda_first = []
+total_quantity_cda_all20 = []
+total_quantity_cda_last10 = []
+total_quantity_cda_first10 = []
 total_quantity_cda_test = []
 
-price_volatility_cda_full = []
-price_volatility_cda_half = []
-price_volatility_cda_first = []
+price_volatility_cda_all20 = []
+price_volatility_cda_last10 = []
+price_volatility_cda_first10 = []
 
-# volume_volatility_cda_full = []
-# volume_volatility_cda_half = []
-# volume_volatility_cda_first = []
+# volume_volatility_cda_all20 = []
+# volume_volatility_cda_last10 = []
+# volume_volatility_cda_first10 = []
 
-order_number_cda_full = []
-order_number_cda_half = []
-order_number_cda_first = []
+order_number_cda_all20 = []
+order_number_cda_last10 = []
+order_number_cda_first10 = []
 order_number_cda_test = []
 
-order_size_cda_full = []
-order_size_cda_half = []
-order_size_cda_first = []
+order_size_cda_all20 = []
+order_size_cda_last10 = []
+order_size_cda_first10 = []
 order_size_cda_test = [] 
 
-extra_traded_quantities_cda_full = []
-extra_traded_quantities_cda_half = []
-extra_traded_quantities_cda_first = []
+extra_traded_quantities_cda_all20 = []
+extra_traded_quantities_cda_last10 = []
+extra_traded_quantities_cda_first10 = []
 extra_traded_quantities_cda_test = []
 
-transaction_number_cda_full = []
-transaction_number_cda_half = []
-transaction_number_cda_first = []
+transaction_number_cda_all20 = []
+transaction_number_cda_last10 = []
+transaction_number_cda_first10 = []
 
 for g in range(1, num_groups_cda + 1):
-    price_deviation_cda_full.extend(summary_cda['price_dev_{}'.format(g)].tolist())
-    price_deviation_cda_half.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['price_dev_{}'.format(g)].tolist())
-    price_deviation_cda_first.extend(summary_cda[summary_cda['round'] <= (num_rounds - prac_rounds) // 2]['price_dev_{}'.format(g)].tolist())
-    price_deviation_cda_test.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['price_dev_{}'.format(g)].tolist())
+    price_deviation_cda_all20.extend(summary_cda['price_dev_{}'.format(g)].tolist())
+    price_deviation_cda_last10.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['price_dev_{}'.format(g)].tolist())
+    price_deviation_cda_first10.extend(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['price_dev_{}'.format(g)].tolist())
+    price_deviation_cda_test.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['price_dev_{}'.format(g)].tolist())
     
-    realized_surplus_cda_full.extend(summary_cda['payoff_percent_{}'.format(g)].tolist())
-    realized_surplus_cda_half.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['payoff_percent_{}'.format(g)].tolist())
-    realized_surplus_cda_first.extend(summary_cda[summary_cda['round'] <= (num_rounds - prac_rounds) // 2]['payoff_percent_{}'.format(g)].tolist())
-    realized_surplus_cda_test.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2 ]['payoff_percent_{}'.format(g)].tolist())
+    realized_surplus_cda_all20.extend(summary_cda['payoff_percent_{}'.format(g)].tolist())
+    realized_surplus_cda_last10.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['payoff_percent_{}'.format(g)].tolist())
+    realized_surplus_cda_first10.extend(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['payoff_percent_{}'.format(g)].tolist())
+    realized_surplus_cda_test.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2 ]['payoff_percent_{}'.format(g)].tolist())
     
-    percent_contract_cda_full.extend(summary_cda['contract_percent_{}'.format(g)].tolist())
-    percent_contract_cda_half.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['contract_percent_{}'.format(g)].tolist())
-    percent_contract_cda_first.extend(summary_cda[summary_cda['round'] <= (num_rounds - prac_rounds) // 2]['contract_percent_{}'.format(g)].tolist())
-    percent_contract_cda_test.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['contract_percent_{}'.format(g)].tolist())
+    percent_contract_cda_all20.extend(summary_cda['contract_percent_{}'.format(g)].tolist())
+    percent_contract_cda_last10.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['contract_percent_{}'.format(g)].tolist())
+    percent_contract_cda_first10.extend(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['contract_percent_{}'.format(g)].tolist())
+    percent_contract_cda_test.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['contract_percent_{}'.format(g)].tolist())
     
-    total_quantity_cda_full.extend(summary_cda['transacted_quantity_{}'.format(g)].tolist())
-    total_quantity_cda_half.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['transacted_quantity_{}'.format(g)].tolist())
-    total_quantity_cda_first.extend(summary_cda[summary_cda['round'] <= (num_rounds - prac_rounds) // 2]['transacted_quantity_{}'.format(g)].tolist())
-    total_quantity_cda_test.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['transacted_quantity_{}'.format(g)].tolist())
+    total_quantity_cda_all20.extend(summary_cda['transacted_quantity_{}'.format(g)].tolist())
+    total_quantity_cda_last10.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['transacted_quantity_{}'.format(g)].tolist())
+    total_quantity_cda_first10.extend(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['transacted_quantity_{}'.format(g)].tolist())
+    total_quantity_cda_test.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['transacted_quantity_{}'.format(g)].tolist())
     
-    price_volatility_cda_full.extend(data_groups_mkt_cda[data_groups_mkt_cda['clearing_price_{}'.format(g)] > 0]['clearing_price_{}'.format(g)].tolist())
-    price_volatility_cda_half.extend(data_groups_mkt_cda[(data_groups_mkt_cda['clearing_price_{}'.format(g)] > 0) & (data_groups_mkt_cda['timestamp'] > (round_length - leave_out_seconds - leave_out_seconds_end) * (num_rounds - prac_rounds) // 2)]['clearing_price_{}'.format(g)].tolist())
-    price_volatility_cda_first.extend(data_groups_mkt_cda[(data_groups_mkt_cda['clearing_price_{}'.format(g)] > 0) & (data_groups_mkt_cda['timestamp'] <= (round_length - leave_out_seconds - leave_out_seconds_end) * (num_rounds - prac_rounds) // 2)]['clearing_price_{}'.format(g)].tolist())
+    price_volatility_cda_all20.extend(market_per_second_cda[market_per_second_cda['clearing_price_{}'.format(g)] > 0]['clearing_price_{}'.format(g)].tolist())
+    price_volatility_cda_last10.extend(market_per_second_cda[(market_per_second_cda['clearing_price_{}'.format(g)] > 0) & (market_per_second_cda['timestamp'] > (round_length - leave_out_seconds - leave_out_seconds_end) * (num_periods - prac_periods) // 2)]['clearing_price_{}'.format(g)].tolist())
+    price_volatility_cda_first10.extend(market_per_second_cda[(market_per_second_cda['clearing_price_{}'.format(g)] > 0) & (market_per_second_cda['timestamp'] <= (round_length - leave_out_seconds - leave_out_seconds_end) * (num_periods - prac_periods) // 2)]['clearing_price_{}'.format(g)].tolist())
     
-    # volume_volatility_cda_full.extend(data_groups_mkt_cda[data_groups_mkt_cda['clearing_quantity_{}'.format(g)] > 0]['clearing_quantity_{}'.format(g)].tolist())
-    # volume_volatility_cda_half.extend(data_groups_mkt_cda[(data_groups_mkt_cda['clearing_quantity_{}'.format(g)] > 0) & (data_groups_mkt_cda['timestamp'] > (round_length - leave_out_seconds) * (num_rounds - prac_rounds) // 2)]['clearing_quantity_{}'.format(g)].tolist())
-    # volume_volatility_cda_first.extend(data_groups_mkt_cda[(data_groups_mkt_cda['clearing_quantity_{}'.format(g)] > 0) & (data_groups_mkt_cda['timestamp'] <= (round_length - leave_out_seconds) * (num_rounds - prac_rounds) // 2)]['clearing_quantity_{}'.format(g)].tolist())
+    # volume_volatility_cda_all20.extend(market_per_second_cda[market_per_second_cda['clearing_quantity_{}'.format(g)] > 0]['clearing_quantity_{}'.format(g)].tolist())
+    # volume_volatility_cda_last10.extend(market_per_second_cda[(market_per_second_cda['clearing_quantity_{}'.format(g)] > 0) & (market_per_second_cda['timestamp'] > (round_length - leave_out_seconds) * (num_periods - prac_periods) // 2)]['clearing_quantity_{}'.format(g)].tolist())
+    # volume_volatility_cda_first10.extend(market_per_second_cda[(market_per_second_cda['clearing_quantity_{}'.format(g)] > 0) & (market_per_second_cda['timestamp'] <= (round_length - leave_out_seconds) * (num_periods - prac_periods) // 2)]['clearing_quantity_{}'.format(g)].tolist())
 
-    order_number_cda_full.extend(summary_cda['orders_{}'.format(g)].tolist())
-    order_number_cda_half.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['orders_{}'.format(g)].tolist())
-    order_number_cda_first.extend(summary_cda[summary_cda['round'] <= (num_rounds - prac_rounds) // 2]['orders_{}'.format(g)].tolist())
-    order_number_cda_test.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['orders_{}'.format(g)])
+    order_number_cda_all20.extend(summary_cda['orders_{}'.format(g)].tolist())
+    order_number_cda_last10.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['orders_{}'.format(g)].tolist())
+    order_number_cda_first10.extend(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['orders_{}'.format(g)].tolist())
+    order_number_cda_test.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['orders_{}'.format(g)])
 
-    order_size_cda_full.extend(summary_cda['order_size_{}'.format(g)].tolist())
-    order_size_cda_half.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['order_size_{}'.format(g)].tolist())
-    order_size_cda_first.extend(summary_cda[summary_cda['round'] <= (num_rounds - prac_rounds) // 2]['order_size_{}'.format(g)].tolist())
-    order_size_cda_test.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['order_size_{}'.format(g)])
+    order_size_cda_all20.extend(summary_cda['order_size_{}'.format(g)].tolist())
+    order_size_cda_last10.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['order_size_{}'.format(g)].tolist())
+    order_size_cda_first10.extend(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['order_size_{}'.format(g)].tolist())
+    order_size_cda_test.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['order_size_{}'.format(g)])
 
-    transaction_number_cda_full.extend(summary_cda['transactions_{}'.format(g)].tolist())
-    transaction_number_cda_half.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['transactions_{}'.format(g)].tolist())
-    transaction_number_cda_first.extend(summary_cda[summary_cda['round'] <= (num_rounds - prac_rounds) // 2]['transactions_{}'.format(g)].tolist())
+    transaction_number_cda_all20.extend(summary_cda['transactions_{}'.format(g)].tolist())
+    transaction_number_cda_last10.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['transactions_{}'.format(g)].tolist())
+    transaction_number_cda_first10.extend(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['transactions_{}'.format(g)].tolist())
 
-    extra_traded_quantities_cda_full.append(summary_cda['order_size_{}'.format(g)].mean())
-    extra_traded_quantities_cda_half.append(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['order_size_{}'.format(g)].mean())
-    extra_traded_quantities_cda_first.append(summary_cda[summary_cda['round'] <= (num_rounds - prac_rounds) // 2]['order_size_{}'.format(g)].mean())
-    extra_traded_quantities_cda_test.extend(summary_cda[summary_cda['round'] > (num_rounds - prac_rounds) // 2]['order_size_{}'.format(g)])
+    extra_traded_quantities_cda_all20.append(summary_cda['order_size_{}'.format(g)].mean())
+    extra_traded_quantities_cda_last10.append(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['order_size_{}'.format(g)].mean())
+    extra_traded_quantities_cda_first10.append(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['order_size_{}'.format(g)].mean())
+    extra_traded_quantities_cda_test.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['order_size_{}'.format(g)])
 
 
     regress_df = pd.DataFrame(
         {
-            'round': [i for i in range(1, (num_rounds - prac_rounds) + 1)],
-            'block': [i for i in range(1, blocks + 1) for _ in range((num_rounds - prac_rounds) // blocks) ], 
+            'period': [i for i in range(1, (num_periods - prac_periods) + 1)],
+            'block': [i for i in range(1, blocks + 1) for _ in range((num_periods - prac_periods) // blocks) ], 
             'price_deviation': summary_cda['price_dev_{}'.format(g)].tolist(),
             'realized_surplus': summary_cda['payoff_percent_{}'.format(g)].tolist(),
             'traded_volume': summary_cda['transacted_quantity_{}'.format(g)].tolist(),
             'filled_contract': summary_cda['contract_percent_{}'.format(g)].tolist(), 
-            'format' : ['CDA' for _ in range(num_rounds - prac_rounds)],
-            'group': [g for _ in range(num_rounds - prac_rounds)],
+            'format' : ['CDA' for _ in range(num_periods - prac_periods)],
+            'group': [g for _ in range(num_periods - prac_periods)],
             'ce_quantity': ce_quantity, 
         }
     )
@@ -585,7 +585,7 @@ for g in range(1, num_groups_cda + 1):
 
 
 regress_cda_period['filled_ce_quantity'] = regress_cda_period['traded_volume'] / regress_cda_period['ce_quantity']
-# regress_cda_period['order_number'] = order_number_cda_full
+# regress_cda_period['order_number'] = order_number_cda_all20
 
 regress_cda['price_deviation'] = 0
 for ind, row in regress_cda.iterrows():
@@ -597,7 +597,7 @@ for ind, row in regress_cda.iterrows():
             else:
                 regress_cda.at[ind, 'price_deviation'] =  8 - row['weighted_price']
         else: 
-            regress_cda.at[ind, 'price_deviation'] = abs(row['weighted_price'] - ce_price[row['round'] - 1])
+            regress_cda.at[ind, 'price_deviation'] = abs(row['weighted_price'] - ce_price[row['period'] - 1])
 
 print(regress_cda)
 print(regress_cda_period)

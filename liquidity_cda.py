@@ -89,8 +89,8 @@ def get_best_bids_asks(orders):
 
 for g in range(1, num_groups_cda + 1):
     group_mkt = []
-    for r in range(1, num_rounds - prac_rounds + 1): 
-        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+    for r in range(1, num_periods - prac_periods + 1): 
+        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_market.json'.format(g, r + prac_periods)
         rnd = pd.read_json(
             path,
         )
@@ -103,8 +103,8 @@ for g in range(1, num_groups_cda + 1):
         group_mkt.append(rnd) 
 
 
-    for r in range(1, num_rounds - prac_rounds + 1):
-        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
+    for r in range(1, num_periods - prac_periods + 1):
+        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_participant.json'.format(g, r + prac_periods)
         rnd = pd.read_json(
             path,
         )
@@ -112,9 +112,9 @@ for g in range(1, num_groups_cda + 1):
         rnd = rnd[(leave_out_seconds <= rnd['timestamp']) & (rnd['timestamp'] < round_length - leave_out_seconds_end) & (rnd['before_transaction'] == False)].reset_index(drop=True)
         rnd = pd.merge(rnd, group_mkt[r - 1], how='left', on='timestamp')
         result = rnd.groupby('timestamp')['active_orders'].agg(lambda x: [order for orders in x for order in orders]).reset_index()
-        result['round'] = r
+        result['period'] = r
         result['group'] = g
-        result['block'] = result['round'] // ((num_rounds - prac_rounds) // blocks) + (result['round'] % ((num_rounds - prac_rounds) // blocks) != 0)
+        result['block'] = result['period'] // ((num_periods - prac_periods) // blocks) + (result['period'] % ((num_periods - prac_periods) // blocks) != 0)
         result['interval'] = (result['timestamp'] // price_interval_size) + 1
         result = result[(result['timestamp'] + 1) % price_interval_size == 0]
         result['best_bid_ask_spread'] = 0

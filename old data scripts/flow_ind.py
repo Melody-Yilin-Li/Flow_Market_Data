@@ -86,8 +86,8 @@ colors = ['lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', '
 for g in range(1, num_groups_flow + 1):
     name = 'group' + str(g)
     group_mkt = []
-    for r in range(1, num_rounds - prac_rounds + 1): 
-        path = directory + 'flow{}/{}/1_market.json'.format(g, r + prac_rounds)
+    for r in range(1, num_periods - prac_periods + 1): 
+        path = directory + 'flow{}/{}/1_market.json'.format(g, r + prac_periods)
         rnd = pd.read_json(path)
         rnd = rnd[(rnd['before_transaction'] == False)]
         rnd['no_trans'] = rnd['clearing_price'].isna().sum()
@@ -99,7 +99,7 @@ for g in range(1, num_groups_flow + 1):
         group_mkt.append(rnd) 
 
     group_par = []
-    for r in range(1, num_rounds - prac_rounds + 1):
+    for r in range(1, num_periods - prac_periods + 1):
         order_price_low_buy = []
         order_price_high_buy = []
         order_num_buy = 0
@@ -114,7 +114,7 @@ for g in range(1, num_groups_flow + 1):
 
         visited = set()
         
-        path = directory + 'flow{}/{}/1_participant.json'.format(g, r + prac_rounds)
+        path = directory + 'flow{}/{}/1_participant.json'.format(g, r + prac_periods)
         rnd = pd.read_json(
             path,
         )
@@ -267,9 +267,9 @@ for g in range(1, num_groups_flow + 1):
         regress_df = regress_df.groupby('direction', as_index=False) \
                 .aggregate({'cumulative_quantity': 'mean', 'fill_quantity': 'sum', 'ce_quantity': 'mean', 'ce_price': 'mean', 'cash': 'sum', 'in_market_quantity': 'sum', 'ind_ce_profit': 'sum', 'excess_profit': 'sum', 'no_trans': 'mean'})\
                 .reset_index(drop=True)
-        regress_df['round'] = r
+        regress_df['period'] = r
         regress_df['group'] = g
-        regress_df['block'] = regress_df['round'] // ((num_rounds - prac_rounds) // blocks) + (regress_df['round'] % ((num_rounds - prac_rounds) // blocks) != 0)
+        regress_df['block'] = regress_df['period'] // ((num_periods - prac_periods) // blocks) + (regress_df['period'] % ((num_periods - prac_periods) // blocks) != 0)
         regress_df['format'] = 'FLOW'
         regress_df.rename(columns={'ind_ce_profit': 'ce_profit'}, inplace=True)
         regress_df['gross_profits_norm'] = regress_df['cash'] / regress_df['ce_profit']
@@ -299,8 +299,8 @@ for g in range(1, num_groups_flow + 1):
         rnd = rnd[(rnd['timestamp'] >= leave_out_seconds) & (rnd['timestamp'] < round_length - leave_out_seconds_end)]
         del rnd['no_trans']
         # rnd["group"] = g
-        # rnd["round"] = r
-        # rnd["block"] = r // ((num_rounds - prac_rounds) // blocks) + (r % ((num_rounds - prac_rounds) // blocks) != 0)
+        # rnd["period"] = r
+        # rnd["block"] = r // ((num_periods - prac_periods) // blocks) + (r % ((num_periods - prac_periods) // blocks) != 0)
         group_par.append(rnd)
 
     df = pd.concat(group_par, ignore_index=True, sort=False)
@@ -398,10 +398,10 @@ for g in range(1, num_groups_flow + 1):
     # print('LOSSES')
     # print('group {}'.format(g), 'COUNT\n', 
     #     (df[(df['timestamp'] % (round_length - leave_out_seconds) == 0)]['projected_profit_{}'.format(g)] < 0).sum(), 
-    #     (df[(df['timestamp'] % (round_length - leave_out_seconds) == 0) & (df['timestamp'] // (round_length - leave_out_seconds) > ((num_rounds - prac_rounds) // 2))]['projected_profit_{}'.format(g)] < 0).sum(), )
+    #     (df[(df['timestamp'] % (round_length - leave_out_seconds) == 0) & (df['timestamp'] // (round_length - leave_out_seconds) > ((num_periods - prac_periods) // 2))]['projected_profit_{}'.format(g)] < 0).sum(), )
     # print('group {}'.format(g), 'VALUE\n', 
     #     df[(df['timestamp'] % (round_length - leave_out_seconds) == 0) & (df['projected_profit_{}'.format(g)] < 0)]['projected_profit_{}'.format(g)].sum(), 
-    #     df[(df['timestamp'] % (round_length - leave_out_seconds) == 0) & (df['timestamp'] // (round_length - leave_out_seconds) > ((num_rounds - prac_rounds) // 2)) & (df['projected_profit_{}'.format(g)] < 0)]['projected_profit_{}'.format(g)].sum(), 
+    #     df[(df['timestamp'] % (round_length - leave_out_seconds) == 0) & (df['timestamp'] // (round_length - leave_out_seconds) > ((num_periods - prac_periods) // 2)) & (df['projected_profit_{}'.format(g)] < 0)]['projected_profit_{}'.format(g)].sum(), 
     #     )
 
     flow_ind.append(df)
@@ -419,12 +419,12 @@ data_flow_ind = reduce(lambda left, right:    # Merge DataFrames in list
 aggregate = {q: 'sum' for q in projected_profits}
 data_flow_contract_by_direction = data_flow_ind[data_flow_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0].groupby(['timestamp', 'direction'], as_index=False).agg(aggregate)
 data_flow_contract_by_direction['ce_profits'] = 0
-data_flow_contract_by_direction['round'] = data_flow_contract_by_direction['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
+data_flow_contract_by_direction['period'] = data_flow_contract_by_direction['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
 for ind, row in data_flow_contract_by_direction.iterrows():
     if row['direction'] == 'buy': 
-        data_flow_contract_by_direction.loc[ind, 'ce_profits'] = ce_profit_buy[row['round'] - 1]
+        data_flow_contract_by_direction.loc[ind, 'ce_profits'] = ce_profit_buy[row['period'] - 1]
     else:
-        data_flow_contract_by_direction.loc[ind, 'ce_profits'] = ce_profit_sell[row['round'] - 1]
+        data_flow_contract_by_direction.loc[ind, 'ce_profits'] = ce_profit_sell[row['period'] - 1]
 for g in range(1, len(projected_profits) + 1): 
     data_flow_contract_by_direction['realized_surplus_{}'.format(g)] = data_flow_contract_by_direction[projected_profits[g - 1]] / data_flow_contract_by_direction['ce_profits']
 data_flow_contract_by_direction = data_flow_contract_by_direction.drop('timestamp', axis = 1)
@@ -468,8 +468,8 @@ plt.figure(figsize=(15, 5))
 for l in range(len(benchmark_paces)): 
     lab = '_group' + str(l + 1)
     plt.plot(data_mean_flow[data_mean_flow[benchmark_paces[l]] > 0]['timestamp'], data_mean_flow[data_mean_flow[benchmark_paces[l]] > 0][benchmark_paces[l]], linestyle='solid', c=colors[l], label=lab)
-plt.hlines(y=1, xmin=0, xmax=(num_rounds-prac_rounds) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='--')
-for x in [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_rounds - prac_rounds)]:
+plt.hlines(y=1, xmin=0, xmax=(num_periods-prac_periods) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='--')
+for x in [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]:
     plt.vlines(x, ymin=0, ymax=5, colors='lightgrey', linestyles='dotted')
 # plt.legend(bbox_to_anchor=(1, 1),
 #         loc='upper left',
@@ -504,7 +504,7 @@ df_long = data_mean_flow_by_direction.melt(id_vars=['timestamp', 'direction'], v
 df_long['group_id'] = df_long['group_id'].str.replace('projected_profit', 'group')
 
 sns.lineplot(data=df_long, x='timestamp', y='projected_profit', hue='group_id', style='direction', palette=colors[:num_groups_flow], legend='full')
-plt.hlines(y=0, xmin=0, xmax=(num_rounds-prac_rounds) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='dotted')
+plt.hlines(y=0, xmin=0, xmax=(num_periods-prac_periods) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='dotted')
 plt.legend(bbox_to_anchor=(1, 1),
         loc='upper left',
         borderaxespad=.5)
@@ -522,9 +522,9 @@ end_of_period_profits_flow['period'] = data_sum_flow_by_direction['timestamp'] /
 
 mean_end_of_period_profits_flow = end_of_period_profits_flow.groupby(['direction'], as_index=False)[projected_profits].mean()
 mean_end_of_period_profits_flow['mean'] = mean_end_of_period_profits_flow[projected_profits].mean(axis=1)
-mean_end_of_period_profits_flow_half = end_of_period_profits_flow[end_of_period_profits_flow['period'] > (num_rounds - prac_rounds) // 2].groupby(['direction'], as_index=False)[projected_profits].mean()
-mean_end_of_period_profits_flow_half['mean'] = mean_end_of_period_profits_flow_half[projected_profits].mean(axis=1)
-# print('All 20 periods', mean_end_of_period_profits_flow, '\nLast 10 periods\n', mean_end_of_period_profits_flow_half)
+mean_end_of_period_profits_flow_last10 = end_of_period_profits_flow[end_of_period_profits_flow['period'] > (num_periods - prac_periods) // 2].groupby(['direction'], as_index=False)[projected_profits].mean()
+mean_end_of_period_profits_flow_last10['mean'] = mean_end_of_period_profits_flow_last10[projected_profits].mean(axis=1)
+# print('All 20 periods', mean_end_of_period_profits_flow, '\nLast 10 periods\n', mean_end_of_period_profits_flow_last10)
 # print(data_mean_flow)
 
 data_flow_ind[in_market_percents] = data_flow_ind[in_market_percents].abs()
@@ -542,94 +542,94 @@ plt.ylim(-0.1, 1.5)
 plt.xlabel('Time')
 plt.ylabel('Realized Surplus')
 plt.title('Mean Realized Surplus vs Time')
-plt.savefig('groups_flow_realized_surplus_ind_truncated.png')
+plt.savefig('groups_flow30ealized_surplus_ind_truncated.png')
 plt.close()
 
 
 summary_flow_by_direction = data_flow_contract_by_direction
 summary_flow_ind_by_direction = data_flow_ind[data_flow_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0][projected_profits + ['ind_ce_profit_1'] + excess_profits + ['direction']].reset_index(drop=True)
-summary_flow_ind_by_direction['round'] = [r for r in range(1, num_rounds - prac_rounds + 1) for _ in range(players_per_group)]
+summary_flow_ind_by_direction['period'] = [r for r in range(1, num_periods - prac_periods + 1) for _ in range(players_per_group)]
 
 print(summary_flow_ind_by_direction)
 exit(0)
 
-realized_surplus_buy_flow_full = []
-realized_surplus_buy_flow_half = []
-realized_surplus_buy_flow_first = []
+realized_surplus_buy_flow_all20 = []
+realized_surplus_buy_flow_last10 = []
+realized_surplus_buy_flow_first10 = []
 realized_surplus_buy_flow_test = []
 
-realized_surplus_sell_flow_full = []
-realized_surplus_sell_flow_half = []
-realized_surplus_sell_flow_first = []
+realized_surplus_sell_flow_all20 = []
+realized_surplus_sell_flow_last10 = []
+realized_surplus_sell_flow_first10 = []
 realized_surplus_sell_flow_test = []
 
-profits_buy_flow_ind_full = []
-profits_buy_flow_ind_half = []
-profits_buy_flow_ind_first = []
+profits_buy_flow_ind_all20 = []
+profits_buy_flow_ind_last10 = []
+profits_buy_flow_ind_first10 = []
 
-profits_sell_flow_ind_full = []
-profits_sell_flow_ind_half = []
-profits_sell_flow_ind_first = []
+profits_sell_flow_ind_all20 = []
+profits_sell_flow_ind_last10 = []
+profits_sell_flow_ind_first10 = []
 
-excess_profits_buy_flow_ind_full = []
-excess_profits_buy_flow_ind_half = []
-excess_profits_buy_flow_ind_first = []
+excess_profits_buy_flow_ind_all20 = []
+excess_profits_buy_flow_ind_last10 = []
+excess_profits_buy_flow_ind_first10 = []
 
-excess_profits_sell_flow_ind_full = []
-excess_profits_sell_flow_ind_half = []
-excess_profits_sell_flow_ind_first = []
+excess_profits_sell_flow_ind_all20 = []
+excess_profits_sell_flow_ind_last10 = []
+excess_profits_sell_flow_ind_first10 = []
 
 for g in range(1, num_groups_flow + 1):
-    realized_surplus_buy_flow_full.append(summary_flow_by_direction[summary_flow_by_direction['direction'] == 'buy']['realized_surplus_{}'.format(g)].mean())
-    realized_surplus_buy_flow_half.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'buy') & (summary_flow_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus_{}'.format(g)].mean())
-    realized_surplus_buy_flow_first.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'buy') & (summary_flow_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus_{}'.format(g)].mean())
-    realized_surplus_buy_flow_test.extend(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'buy') & (summary_flow_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus_{}'.format(g)].tolist())
+    realized_surplus_buy_flow_all20.append(summary_flow_by_direction[summary_flow_by_direction['direction'] == 'buy']['realized_surplus_{}'.format(g)].mean())
+    realized_surplus_buy_flow_last10.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'buy') & (summary_flow_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].mean())
+    realized_surplus_buy_flow_first10.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'buy') & (summary_flow_by_direction['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].mean())
+    realized_surplus_buy_flow_test.extend(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'buy') & (summary_flow_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].tolist())
 
-    realized_surplus_sell_flow_full.append(summary_flow_by_direction[summary_flow_by_direction['direction'] == 'sell']['realized_surplus_{}'.format(g)].mean())
-    realized_surplus_sell_flow_half.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'sell') & (summary_flow_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus_{}'.format(g)].mean())
-    realized_surplus_sell_flow_first.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'sell') & (summary_flow_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus_{}'.format(g)].mean())
-    realized_surplus_sell_flow_test.extend(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'sell') & (summary_flow_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus_{}'.format(g)].tolist())
+    realized_surplus_sell_flow_all20.append(summary_flow_by_direction[summary_flow_by_direction['direction'] == 'sell']['realized_surplus_{}'.format(g)].mean())
+    realized_surplus_sell_flow_last10.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'sell') & (summary_flow_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].mean())
+    realized_surplus_sell_flow_first10.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'sell') & (summary_flow_by_direction['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].mean())
+    realized_surplus_sell_flow_test.extend(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'sell') & (summary_flow_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].tolist())
 
-    profits_buy_flow_ind_full.extend(summary_flow_ind_by_direction[summary_flow_ind_by_direction['direction'] == 'buy']['projected_profit_{}'.format(g)].tolist())
-    profits_buy_flow_ind_half.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'buy') & (summary_flow_ind_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['projected_profit_{}'.format(g)].tolist())
-    profits_buy_flow_ind_first.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'buy') & (summary_flow_ind_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['projected_profit_{}'.format(g)].tolist())
+    profits_buy_flow_ind_all20.extend(summary_flow_ind_by_direction[summary_flow_ind_by_direction['direction'] == 'buy']['projected_profit_{}'.format(g)].tolist())
+    profits_buy_flow_ind_last10.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'buy') & (summary_flow_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['projected_profit_{}'.format(g)].tolist())
+    profits_buy_flow_ind_first10.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'buy') & (summary_flow_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['projected_profit_{}'.format(g)].tolist())
 
-    profits_sell_flow_ind_full.extend(summary_flow_ind_by_direction[summary_flow_ind_by_direction['direction'] == 'sell']['projected_profit_{}'.format(g)].tolist())
-    profits_sell_flow_ind_half.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'sell') & (summary_flow_ind_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['projected_profit_{}'.format(g)].tolist())
-    profits_sell_flow_ind_first.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'sell') & (summary_flow_ind_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['projected_profit_{}'.format(g)].tolist())
+    profits_sell_flow_ind_all20.extend(summary_flow_ind_by_direction[summary_flow_ind_by_direction['direction'] == 'sell']['projected_profit_{}'.format(g)].tolist())
+    profits_sell_flow_ind_last10.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'sell') & (summary_flow_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['projected_profit_{}'.format(g)].tolist())
+    profits_sell_flow_ind_first10.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'sell') & (summary_flow_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['projected_profit_{}'.format(g)].tolist())
 
-    excess_profits_buy_flow_ind_full.extend(summary_flow_ind_by_direction[summary_flow_ind_by_direction['direction'] == 'buy']['excess_profit_{}'.format(g)].tolist())
-    excess_profits_buy_flow_ind_half.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'buy') & (summary_flow_ind_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['excess_profit_{}'.format(g)].tolist())
-    excess_profits_buy_flow_ind_first.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'buy') & (summary_flow_ind_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['excess_profit_{}'.format(g)].tolist())
+    excess_profits_buy_flow_ind_all20.extend(summary_flow_ind_by_direction[summary_flow_ind_by_direction['direction'] == 'buy']['excess_profit_{}'.format(g)].tolist())
+    excess_profits_buy_flow_ind_last10.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'buy') & (summary_flow_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['excess_profit_{}'.format(g)].tolist())
+    excess_profits_buy_flow_ind_first10.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'buy') & (summary_flow_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['excess_profit_{}'.format(g)].tolist())
     
-    excess_profits_sell_flow_ind_full.extend(summary_flow_ind_by_direction[summary_flow_ind_by_direction['direction'] == 'sell']['excess_profit_{}'.format(g)].tolist())
-    excess_profits_sell_flow_ind_half.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'sell') & (summary_flow_ind_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['excess_profit_{}'.format(g)].tolist())
-    excess_profits_sell_flow_ind_first.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'sell') & (summary_flow_ind_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['excess_profit_{}'.format(g)].tolist())
+    excess_profits_sell_flow_ind_all20.extend(summary_flow_ind_by_direction[summary_flow_ind_by_direction['direction'] == 'sell']['excess_profit_{}'.format(g)].tolist())
+    excess_profits_sell_flow_ind_last10.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'sell') & (summary_flow_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['excess_profit_{}'.format(g)].tolist())
+    excess_profits_sell_flow_ind_first10.extend(summary_flow_ind_by_direction[(summary_flow_ind_by_direction['direction'] == 'sell') & (summary_flow_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['excess_profit_{}'.format(g)].tolist())
 
 # print(
-    # realized_surplus_buy_flow_full,
-#     realized_surplus_buy_flow_half,
+    # realized_surplus_buy_flow_all20,
+#     realized_surplus_buy_flow_last10,
 #     realized_surplus_buy_flow_test,
-    # realized_surplus_sell_flow_full,
-#     realized_surplus_sell_flow_half,
+    # realized_surplus_sell_flow_all20,
+#     realized_surplus_sell_flow_last10,
 #     realized_surplus_sell_flow_test,
 # )
 # print(data_flow_contract_by_direction)
 
-# print(profits_buy_flow_ind_full, profits_sell_flow_ind_full, profits_buy_flow_ind_half, profits_sell_flow_ind_half)
-# print(len(profits_buy_flow_ind_full), len(profits_sell_flow_ind_full), len(profits_buy_flow_ind_half), len(profits_sell_flow_ind_half))
+# print(profits_buy_flow_ind_all20, profits_sell_flow_ind_all20, profits_buy_flow_ind_last10, profits_sell_flow_ind_last10)
+# print(len(profits_buy_flow_ind_all20), len(profits_sell_flow_ind_all20), len(profits_buy_flow_ind_last10), len(profits_sell_flow_ind_last10))
 
 # cdf of excess profits at ind level
-sorted_excess_profit_flow_ind_full = np.sort(excess_profits_buy_flow_ind_full + excess_profits_sell_flow_ind_full)
-sorted_excess_profit_buy_flow_ind_full = np.sort(excess_profits_buy_flow_ind_full)
-sorted_excess_profit_sell_flow_ind_full = np.sort(excess_profits_sell_flow_ind_full)
-cumulative_prob_excess_profit_flow_ind_full = np.arange(1, len(sorted_excess_profit_flow_ind_full) + 1) / len(sorted_excess_profit_flow_ind_full)
-cumulative_prob_excess_profit_buy_flow_ind_full = np.arange(1, len(sorted_excess_profit_buy_flow_ind_full) + 1) / len(sorted_excess_profit_buy_flow_ind_full)
-cumulative_prob_excess_profit_sell_flow_ind_full = np.arange(1, len(sorted_excess_profit_sell_flow_ind_full) + 1) / len(sorted_excess_profit_sell_flow_ind_full)
+sorted_excess_profit_flow_ind_all20 = np.sort(excess_profits_buy_flow_ind_all20 + excess_profits_sell_flow_ind_all20)
+sorted_excess_profit_buy_flow_ind_all20 = np.sort(excess_profits_buy_flow_ind_all20)
+sorted_excess_profit_sell_flow_ind_all20 = np.sort(excess_profits_sell_flow_ind_all20)
+cumulative_prob_excess_profit_flow_ind_all20 = np.arange(1, len(sorted_excess_profit_flow_ind_all20) + 1) / len(sorted_excess_profit_flow_ind_all20)
+cumulative_prob_excess_profit_buy_flow_ind_all20 = np.arange(1, len(sorted_excess_profit_buy_flow_ind_all20) + 1) / len(sorted_excess_profit_buy_flow_ind_all20)
+cumulative_prob_excess_profit_sell_flow_ind_all20 = np.arange(1, len(sorted_excess_profit_sell_flow_ind_all20) + 1) / len(sorted_excess_profit_sell_flow_ind_all20)
 plt.figure(figsize=(8, 5))
-plt.step(sorted_excess_profit_flow_ind_full, cumulative_prob_excess_profit_flow_ind_full, label='CDF', where='post')
-plt.step(sorted_excess_profit_buy_flow_ind_full, cumulative_prob_excess_profit_buy_flow_ind_full, label='buyers', where='post')
-plt.step(sorted_excess_profit_sell_flow_ind_full, cumulative_prob_excess_profit_sell_flow_ind_full, label='sellers', where='post')
+plt.step(sorted_excess_profit_flow_ind_all20, cumulative_prob_excess_profit_flow_ind_all20, label='CDF', where='post')
+plt.step(sorted_excess_profit_buy_flow_ind_all20, cumulative_prob_excess_profit_buy_flow_ind_all20, label='buyers', where='post')
+plt.step(sorted_excess_profit_sell_flow_ind_all20, cumulative_prob_excess_profit_sell_flow_ind_all20, label='sellers', where='post')
 plt.title('CDF of the Excess Profits (FLOW)')
 plt.xlabel('Excess Profits')
 plt.ylabel('Probability')

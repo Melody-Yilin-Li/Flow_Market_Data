@@ -49,20 +49,13 @@ regress_cda_ind = pd.DataFrame()
 # create a list of dfs to be merged 
 cda_ind = []
 
-
-colors = [
-    'lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', 'lightcoral', 'lightskyblue', 'pink',
-    'peachpuff', 'thistle', 'honeydew', 'powderblue', 'mistyrose', 'palegreen', 'paleturquoise', 'lightyellow',
-    'cornsilk', 'lemonchiffon', 'azure', 'aliceblue', 'seashell', 'beige', 'oldlace', 'floralwhite'
-]
-
-executed_percent_buy_cda_first, executed_percent_sell_cda_first, executed_percent_buy_cda_last, executed_percent_sell_cda_last = [], [], [], []
+executed_percent_buy_cda_first10, executed_percent_sell_cda_first10, executed_percent_buy_cda_last10, executed_percent_sell_cda_last10 = [], [], [], []
 
 for g in range(1, num_groups_cda + 1):
     name = 'group' + str(g)
     group_mkt = []
-    for r in range(1, num_rounds - prac_rounds + 1): 
-        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+    for r in range(1, num_periods - prac_periods + 1): 
+        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_market.json'.format(g, r + prac_periods)
         rnd = pd.read_json(path)
         # rnd['clearing_price'].fillna(method='bfill', inplace=True)
         # rnd.fillna(0, inplace=True)
@@ -76,7 +69,7 @@ for g in range(1, num_groups_cda + 1):
 
 
     group_par = []
-    for r in range(1, num_rounds - prac_rounds + 1):
+    for r in range(1, num_periods - prac_periods + 1):
         order_price_buy = []
         order_num_buy = 0
         order_quantity_buy = []
@@ -93,7 +86,7 @@ for g in range(1, num_groups_cda + 1):
 
         visited = set()
         
-        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
+        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_participant.json'.format(g, r + prac_periods)
         rnd = pd.read_json(path)
         rnd = pd.merge(rnd, group_mkt[r - 1], how='left', on='timestamp') # attache clearing price and clearing rate 
         rnd = rnd[(rnd['before_transaction'] == False)].reset_index(drop=True)
@@ -104,7 +97,7 @@ for g in range(1, num_groups_cda + 1):
             for order in row['active_orders']:
                 if order['direction'] == 'sell':
                     if order['order_id'] not in visited:
-                        if row['timestamp'] < initial_seconds:
+                        if row['timestamp'] < early_period:
                             order_price_sell_initial.append(order['price'])
                             order_quantity_sell_initial.append(order['quantity'])
                         order_price_sell.append(order['price'])
@@ -115,7 +108,7 @@ for g in range(1, num_groups_cda + 1):
                     executed_percent_sell[order['order_id']] = order['fill_quantity'] / order['quantity']
                 elif order['direction'] == 'buy':
                     if order['order_id'] not in visited:
-                        if row['timestamp'] < initial_seconds:
+                        if row['timestamp'] < early_period:
                             order_price_buy_initial.append(order['price'])
                             order_quantity_buy_initial.append(order['quantity'])
                         order_price_buy.append(order['price'])
@@ -125,12 +118,12 @@ for g in range(1, num_groups_cda + 1):
                             max_quantity_orders_buy += 1
                     executed_percent_buy[order['order_id']] = order['fill_quantity'] / order['quantity']
                 visited.add(order['order_id'])
-            if r <= (num_rounds - prac_rounds) // 2:
-                executed_percent_buy_cda_first.append(list(executed_percent_buy.values()))
-                executed_percent_sell_cda_first.append(list(executed_percent_sell.values()))
+            if r <= (num_periods - prac_periods) // 2:
+                executed_percent_buy_cda_first10.append(list(executed_percent_buy.values()))
+                executed_percent_sell_cda_first10.append(list(executed_percent_sell.values()))
             else:
-                executed_percent_buy_cda_last.append(list(executed_percent_buy.values()))
-                executed_percent_sell_cda_last.append(list(executed_percent_sell.values()))
+                executed_percent_buy_cda_last10.append(list(executed_percent_buy.values()))
+                executed_percent_sell_cda_last10.append(list(executed_percent_sell.values()))
         
         for ind, row in rnd.iterrows(): # determine which order is in the market given multiple 
             if np.isnan(row['clearing_price']):
@@ -242,9 +235,9 @@ for g in range(1, num_groups_cda + 1):
 
         regress_df = rnd[['direction', 'cumulative_quantity', 'fill_quantity', 'ce_quantity', 'ce_price', 'cash', 'in_market_quantity', 'ind_ce_profit', 'excess_profit']][-players_per_group:].copy()
         regress_df = regress_df.groupby('direction', as_index=False).aggregate({'cumulative_quantity': 'mean', 'fill_quantity': 'sum', 'ce_quantity': 'mean', 'ce_price': 'mean', 'cash': 'sum', 'in_market_quantity': 'sum', 'ind_ce_profit': 'sum', 'excess_profit': 'sum'}).reset_index(drop=True)
-        regress_df['round'] = r
+        regress_df['period'] = r
         regress_df['group'] = g
-        regress_df['block'] = regress_df['block'] = regress_df['round'] // ((num_rounds - prac_rounds) // blocks) + (regress_df['round'] % ((num_rounds - prac_rounds) // blocks) != 0)
+        regress_df['block'] = regress_df['block'] = regress_df['period'] // ((num_periods - prac_periods) // blocks) + (regress_df['period'] % ((num_periods - prac_periods) // blocks) != 0)
         regress_df['format'] = 'CDA'
         regress_df.rename(columns={'ind_ce_profit': 'ce_profit'}, inplace=True)
         regress_df['gross_profits_norm'] = regress_df['cash'] / regress_df['ce_profit']
@@ -281,8 +274,8 @@ for g in range(1, num_groups_cda + 1):
 
         rnd = rnd[(rnd['timestamp'] >= leave_out_seconds) & (rnd['timestamp'] < round_length - leave_out_seconds_end)]
         rnd['group'] = g
-        rnd['round'] = r
-        rnd['block'] = r // ((num_rounds - prac_rounds) // blocks) + (r % ((num_rounds - prac_rounds) // blocks) != 0)  
+        rnd['period'] = r
+        rnd['block'] = r // ((num_periods - prac_periods) // blocks) + (r % ((num_periods - prac_periods) // blocks) != 0)  
         group_par.append(rnd)
     
 
@@ -301,12 +294,12 @@ data_cda_contract_by_direction = data_cda_ind[data_cda_ind['timestamp'] % (round
             .groupby(['timestamp', 'direction'], as_index=False)\
             .agg({'projected_profit': 'sum'})
 data_cda_contract_by_direction['ce_profits'] = 0
-data_cda_contract_by_direction['round'] = data_cda_contract_by_direction['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
+data_cda_contract_by_direction['period'] = data_cda_contract_by_direction['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
 for ind, row in data_cda_contract_by_direction.iterrows():
     if row['direction'] == 'buy': 
-        data_cda_contract_by_direction.loc[ind, 'ce_profits'] = ce_profit_buy[row['round'] - 1]
+        data_cda_contract_by_direction.loc[ind, 'ce_profits'] = ce_profit_buy[row['period'] - 1]
     else:
-        data_cda_contract_by_direction.loc[ind, 'ce_profits'] = ce_profit_sell[row['round'] - 1]
+        data_cda_contract_by_direction.loc[ind, 'ce_profits'] = ce_profit_sell[row['period'] - 1]
 data_cda_contract_by_direction['realized_surplus'] = data_cda_contract_by_direction['projected_profit'] / data_cda_contract_by_direction['ce_profits']
 data_cda_contract_by_direction = data_cda_contract_by_direction.drop('timestamp', axis = 1)
 
@@ -316,25 +309,6 @@ data_mean_cda_by_direction = data_cda_ind.groupby(['timestamp', 'group', 'direct
 
 data_sum_cda_by_direction = data_cda_ind.groupby(['timestamp', 'group', 'direction'], as_index=False)['projected_profit'].apply(lambda x: x.abs().sum())
 
-# average benchmark_pace at group level 
-# plt.figure(figsize=(15, 5))
-# for l in range(num_groups_cda): 
-#     lab = '_group' + str(l + 1)
-#     plt.plot(data_mean_cda[(data_mean_cda['benchmark_pace'] > 0) & (data_mean_cda['group'] == l + 1)]['timestamp'], \
-#             data_mean_cda[(data_mean_cda['benchmark_pace'] > 0) & (data_mean_cda['group'] == l + 1)]['benchmark_pace'], \
-#             linestyle='solid', c=colors[l], label=lab)
-# plt.hlines(y=1, xmin=0, xmax=(num_rounds-prac_rounds) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='--')
-# for x in [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_rounds - prac_rounds)]:
-#     plt.vlines(x, ymin=0, ymax=5, colors='lightgrey', linestyles='dotted')
-# # plt.legend(bbox_to_anchor=(1, 1),
-# #         loc='upper left',
-# #         borderaxespad=.5)
-# plt.ylim(0, 5)
-# plt.xlabel('Time')
-# plt.ylabel('Benchmark Pace')
-# plt.title('Benchmark Pace vs Time')
-# plt.savefig(os.path.join(figures_dir, 'groups_cda_benchmark_pace.png'))
-# plt.close()
 
 # average projected profit at group level 
 plt.figure(figsize=(15, 5))
@@ -359,7 +333,7 @@ data_mean_cda_by_direction.loc[data_mean_cda_by_direction['direction'] == 'sell'
 data_mean_cda_by_direction['group_id'] = 'group' + data_mean_cda_by_direction['group'].astype(str)
 
 sns.lineplot(data=data_mean_cda_by_direction, x='timestamp', y='projected_profit', hue='group_id', style='direction', palette=colors[:num_groups_cda], legend='full')
-plt.hlines(y=0, xmin=0, xmax=(num_rounds-prac_rounds) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='dotted')
+plt.hlines(y=0, xmin=0, xmax=(num_periods-prac_periods) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='dotted')
 plt.legend(bbox_to_anchor=(1, 1),
         loc='upper left',
         borderaxespad=.5)
@@ -378,78 +352,61 @@ mean_end_of_period_profits_cda = end_of_period_profits_cda.groupby(['group', 'di
 direction_means = mean_end_of_period_profits_cda.groupby('direction')['projected_profit'].transform('mean')
 mean_end_of_period_profits_cda['mean'] = direction_means
 
-mean_end_of_period_profits_cda_half = end_of_period_profits_cda[end_of_period_profits_cda['period'] > (num_rounds - prac_rounds) // 2]\
+mean_end_of_period_profits_cda_last10 = end_of_period_profits_cda[end_of_period_profits_cda['period'] > (num_periods - prac_periods) // 2]\
     .groupby(['group', 'direction'], as_index=False)['projected_profit'].mean()
-direction_means_half = mean_end_of_period_profits_cda_half.groupby('direction')['projected_profit'].transform('mean')
-mean_end_of_period_profits_cda_half['mean'] = direction_means_half
+direction_means_last10 = mean_end_of_period_profits_cda_last10.groupby('direction')['projected_profit'].transform('mean')
+mean_end_of_period_profits_cda_last10['mean'] = direction_means_last10
 
 data_cda_ind['in_market_percent'] = data_cda_ind['in_market_percent'].abs()
 individual_agg_data_cda = data_cda_ind[data_cda_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
     .groupby(['group', 'timestamp'], as_index=False)[['projected_profit', 'in_market_percent', 'realized_surplus']].mean()
-individual_agg_data_cda['round'] = individual_agg_data_cda['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
-
-
-# average projected profit at group level 
-# plt.figure(figsize=(15, 5))
-# for l in range(num_groups_cda): 
-#     lab = '_group' + str(l + 1)
-#     plt.plot(individual_agg_data_cda[(individual_agg_data_cda['group'] == l + 1)]['timestamp'], \
-#             individual_agg_data_cda[(individual_agg_data_cda['group'] == l + 1)]['realized_surplus'], \
-#             linestyle='solid', c=colors[l], label=lab)
-# # plt.legend(bbox_to_anchor=(1, 1),
-# #         loc='upper left',
-# #         borderaxespad=.5)
-# plt.ylim(-0.1, 1.5)
-# plt.xlabel('Time')
-# plt.ylabel('Realized Surplus')
-# plt.savefig(os.path.join(figures_dir, 'groups_cda_realized_surplus_ind_truncated.png'))
-# plt.close()
+individual_agg_data_cda['period'] = individual_agg_data_cda['timestamp'] // (round_length - leave_out_seconds - leave_out_seconds_end)
 
 
 summary_cda_by_direction = data_cda_contract_by_direction
 summary_cda_ind_by_direction = data_cda_ind[data_cda_ind['timestamp'] % (round_length - leave_out_seconds - leave_out_seconds_end) == 0]\
-    [['round', 'group', 'direction', 'projected_profit', 'ind_ce_profit',  'excess_profit']]\
+    [['period', 'group', 'direction', 'projected_profit', 'ind_ce_profit',  'excess_profit']]\
     .reset_index(drop=True)
 
 
-realized_surplus_buy_cda_full = summary_cda_by_direction[summary_cda_by_direction['direction'] == 'buy']['realized_surplus'].mean()
-realized_surplus_buy_cda_half = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'buy') & (summary_cda_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean()
-realized_surplus_buy_cda_first = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'buy') & (summary_cda_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean()
-realized_surplus_buy_cda_test = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'buy') & (summary_cda_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].tolist()
+realized_surplus_buy_cda_all20 = summary_cda_by_direction[summary_cda_by_direction['direction'] == 'buy']['realized_surplus'].mean()
+realized_surplus_buy_cda_last10 = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'buy') & (summary_cda_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].mean()
+realized_surplus_buy_cda_first10 = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'buy') & (summary_cda_by_direction['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].mean()
+realized_surplus_buy_cda_test = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'buy') & (summary_cda_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist()
 
-realized_surplus_sell_cda_full = summary_cda_by_direction[summary_cda_by_direction['direction'] == 'sell']['realized_surplus'].mean()
-realized_surplus_sell_cda_half = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'sell') & (summary_cda_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean()
-realized_surplus_sell_cda_first = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'sell') & (summary_cda_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['realized_surplus'].mean()
-realized_surplus_sell_cda_test = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'sell') & (summary_cda_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['realized_surplus'].tolist()
+realized_surplus_sell_cda_all20 = summary_cda_by_direction[summary_cda_by_direction['direction'] == 'sell']['realized_surplus'].mean()
+realized_surplus_sell_cda_last10 = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'sell') & (summary_cda_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].mean()
+realized_surplus_sell_cda_first10 = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'sell') & (summary_cda_by_direction['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].mean()
+realized_surplus_sell_cda_test = summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'sell') & (summary_cda_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist()
 
-profits_buy_cda_ind_full = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'buy']['projected_profit'].tolist()
-profits_buy_cda_ind_half = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'buy') & (summary_cda_ind_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['projected_profit'].tolist()
-profits_buy_cda_ind_first = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'buy') & (summary_cda_ind_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['projected_profit'].tolist()
+profits_buy_cda_ind_all20 = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'buy']['projected_profit'].tolist()
+profits_buy_cda_ind_last10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'buy') & (summary_cda_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['projected_profit'].tolist()
+profits_buy_cda_ind_first10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'buy') & (summary_cda_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['projected_profit'].tolist()
 
-profits_sell_cda_ind_full = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'sell']['projected_profit'].tolist()
-profits_sell_cda_ind_half = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['projected_profit'].tolist()
-profits_sell_cda_ind_first = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['projected_profit'].tolist()
+profits_sell_cda_ind_all20 = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'sell']['projected_profit'].tolist()
+profits_sell_cda_ind_last10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['projected_profit'].tolist()
+profits_sell_cda_ind_first10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['projected_profit'].tolist()
 
-excess_profits_buy_cda_ind_full = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'buy']['excess_profit'].tolist()
-excess_profits_buy_cda_ind_half = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'buy') & (summary_cda_ind_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['excess_profit'].tolist()
-excess_profits_buy_cda_ind_first = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'buy') & (summary_cda_ind_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['excess_profit'].tolist()
+excess_profits_buy_cda_ind_all20 = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'buy']['excess_profit'].tolist()
+excess_profits_buy_cda_ind_last10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'buy') & (summary_cda_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist()
+excess_profits_buy_cda_ind_first10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'buy') & (summary_cda_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist()
 
-excess_profits_sell_cda_ind_full = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'sell']['excess_profit'].tolist()
-excess_profits_sell_cda_ind_half = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['round'] > (num_rounds - prac_rounds) // 2)]['excess_profit'].tolist()
-excess_profits_sell_cda_ind_first = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['round'] <= (num_rounds - prac_rounds) // 2)]['excess_profit'].tolist()
+excess_profits_sell_cda_ind_all20 = summary_cda_ind_by_direction[summary_cda_ind_by_direction['direction'] == 'sell']['excess_profit'].tolist()
+excess_profits_sell_cda_ind_last10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist()
+excess_profits_sell_cda_ind_first10 = summary_cda_ind_by_direction[(summary_cda_ind_by_direction['direction'] == 'sell') & (summary_cda_ind_by_direction['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist()
 
 
 # cdf of excess profits at ind level
-sorted_excess_profit_cda_ind_full = np.sort(excess_profits_buy_cda_ind_full + excess_profits_sell_cda_ind_full)
-sorted_excess_profit_buy_cda_ind_full = np.sort(excess_profits_buy_cda_ind_full)
-sorted_excess_profit_sell_cda_ind_full = np.sort(excess_profits_sell_cda_ind_full)
-cumulative_prob_excess_profit_cda_ind_full = np.arange(1, len(sorted_excess_profit_cda_ind_full) + 1) / len(sorted_excess_profit_cda_ind_full)
-cumulative_prob_excess_profit_buy_cda_ind_full = np.arange(1, len(sorted_excess_profit_buy_cda_ind_full) + 1) / len(sorted_excess_profit_buy_cda_ind_full)
-cumulative_prob_excess_profit_sell_cda_ind_full = np.arange(1, len(sorted_excess_profit_sell_cda_ind_full) + 1) / len(sorted_excess_profit_sell_cda_ind_full)
+sorted_excess_profit_cda_ind_all20 = np.sort(excess_profits_buy_cda_ind_all20 + excess_profits_sell_cda_ind_all20)
+sorted_excess_profit_buy_cda_ind_all20 = np.sort(excess_profits_buy_cda_ind_all20)
+sorted_excess_profit_sell_cda_ind_all20 = np.sort(excess_profits_sell_cda_ind_all20)
+cumulative_prob_excess_profit_cda_ind_all20 = np.arange(1, len(sorted_excess_profit_cda_ind_all20) + 1) / len(sorted_excess_profit_cda_ind_all20)
+cumulative_prob_excess_profit_buy_cda_ind_all20 = np.arange(1, len(sorted_excess_profit_buy_cda_ind_all20) + 1) / len(sorted_excess_profit_buy_cda_ind_all20)
+cumulative_prob_excess_profit_sell_cda_ind_all20 = np.arange(1, len(sorted_excess_profit_sell_cda_ind_all20) + 1) / len(sorted_excess_profit_sell_cda_ind_all20)
 plt.figure(figsize=(8, 5))
-plt.step(sorted_excess_profit_cda_ind_full, cumulative_prob_excess_profit_cda_ind_full, label='CDF', where='post')
-plt.step(sorted_excess_profit_buy_cda_ind_full, cumulative_prob_excess_profit_buy_cda_ind_full, label='buyers', where='post')
-plt.step(sorted_excess_profit_sell_cda_ind_full, cumulative_prob_excess_profit_sell_cda_ind_full, label='sellers', where='post')
+plt.step(sorted_excess_profit_cda_ind_all20, cumulative_prob_excess_profit_cda_ind_all20, label='CDF', where='post')
+plt.step(sorted_excess_profit_buy_cda_ind_all20, cumulative_prob_excess_profit_buy_cda_ind_all20, label='buyers', where='post')
+plt.step(sorted_excess_profit_sell_cda_ind_all20, cumulative_prob_excess_profit_sell_cda_ind_all20, label='sellers', where='post')
 plt.title('CDF of the Excess Profits (CDA)')
 plt.xlabel('Excess Profits')
 plt.ylabel('Probability')
@@ -459,15 +416,15 @@ plt.close()
 
 
 # cdf of percent of order volume executed 
-sorted_executed_percent_buy_cda_first = np.sort(np.concatenate(executed_percent_buy_cda_first))
-sorted_executed_percent_sell_cda_first = np.sort(np.concatenate(executed_percent_sell_cda_first))
-sorted_executed_percent_buy_cda_last = np.sort(np.concatenate(executed_percent_buy_cda_last))
-sorted_executed_percent_sell_cda_last = np.sort(np.concatenate(executed_percent_sell_cda_last))
-cumulative_prob_executed_percent_buy_cda_first = np.arange(1, len(sorted_executed_percent_buy_cda_first) + 1) / len(sorted_executed_percent_buy_cda_first)
-cumulative_prob_executed_percent_sell_cda_first = np.arange(1, len(sorted_executed_percent_sell_cda_first) + 1) / len(sorted_executed_percent_sell_cda_first)
-cumulative_prob_executed_percent_buy_cda_last = np.arange(1, len(sorted_executed_percent_buy_cda_last) + 1) / len(sorted_executed_percent_buy_cda_last)
-cumulative_prob_executed_percent_sell_cda_last = np.arange(1, len(sorted_executed_percent_sell_cda_last) + 1) / len(sorted_executed_percent_sell_cda_last)
-sorted_executed_percent_buy_cda_full = np.sort(np.concatenate(executed_percent_buy_cda_first + executed_percent_buy_cda_last))
-sorted_executed_percent_sell_cda_full = np.sort(np.concatenate(executed_percent_sell_cda_first + executed_percent_sell_cda_last))
-cumulative_prob_executed_percent_buy_cda_full = np.arange(1, len(sorted_executed_percent_buy_cda_full) + 1) / len(sorted_executed_percent_buy_cda_full)
-cumulative_prob_executed_percent_sell_cda_full = np.arange(1, len(sorted_executed_percent_sell_cda_full) + 1) / len(sorted_executed_percent_sell_cda_full)
+sorted_executed_percent_buy_cda_first10 = np.sort(np.concatenate(executed_percent_buy_cda_first10))
+sorted_executed_percent_sell_cda_first10 = np.sort(np.concatenate(executed_percent_sell_cda_first10))
+sorted_executed_percent_buy_cda_last10 = np.sort(np.concatenate(executed_percent_buy_cda_last10))
+sorted_executed_percent_sell_cda_last10 = np.sort(np.concatenate(executed_percent_sell_cda_last10))
+cumulative_prob_executed_percent_buy_cda_first10 = np.arange(1, len(sorted_executed_percent_buy_cda_first10) + 1) / len(sorted_executed_percent_buy_cda_first10)
+cumulative_prob_executed_percent_sell_cda_first10 = np.arange(1, len(sorted_executed_percent_sell_cda_first10) + 1) / len(sorted_executed_percent_sell_cda_first10)
+cumulative_prob_executed_percent_buy_cda_last10 = np.arange(1, len(sorted_executed_percent_buy_cda_last10) + 1) / len(sorted_executed_percent_buy_cda_last10)
+cumulative_prob_executed_percent_sell_cda_last10 = np.arange(1, len(sorted_executed_percent_sell_cda_last10) + 1) / len(sorted_executed_percent_sell_cda_last10)
+sorted_executed_percent_buy_cda_all20 = np.sort(np.concatenate(executed_percent_buy_cda_first10 + executed_percent_buy_cda_last10))
+sorted_executed_percent_sell_cda_all20 = np.sort(np.concatenate(executed_percent_sell_cda_first10 + executed_percent_sell_cda_last10))
+cumulative_prob_executed_percent_buy_cda_all20 = np.arange(1, len(sorted_executed_percent_buy_cda_all20) + 1) / len(sorted_executed_percent_buy_cda_all20)
+cumulative_prob_executed_percent_sell_cda_all20 = np.arange(1, len(sorted_executed_percent_sell_cda_all20) + 1) / len(sorted_executed_percent_sell_cda_all20)

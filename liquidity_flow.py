@@ -307,38 +307,38 @@ def get_trans_slopes(orders, clearingPrice): # returns flow demand slope, flow s
         flow_demand_slope = demand_q = np.nan
 
     if asks_in_mkt: 
-        flow_supply_slope, supply_q = aggregate_slope(asks_in_mkt)
+        flow60upply_slope, supply_q = aggregate_slope(asks_in_mkt)
     elif asks_out_of_mkt:
         asks_out_of_mkt.sort()
-        flow_supply_slope, supply_q = asks_out_of_mkt[0][1], asks_out_of_mkt[0][2]
+        flow60upply_slope, supply_q = asks_out_of_mkt[0][1], asks_out_of_mkt[0][2]
     else:
-        flow_supply_slope = supply_q = np.nan
+        flow60upply_slope = supply_q = np.nan
 
     if np.isnan(supply_q) or np.isnan(demand_q):
         rem_quantity = np.nan
     else:
         rem_quantity = min(demand_q, supply_q)
     
-    if np.isnan(flow_demand_slope) and np.isnan(flow_supply_slope):
+    if np.isnan(flow_demand_slope) and np.isnan(flow60upply_slope):
         flow_demand_slope = (min_order_price - max_order_price) / small_rate_change
-        flow_supply_slope = (max_order_price - min_order_price) / small_rate_change
+        flow60upply_slope = (max_order_price - min_order_price) / small_rate_change
     elif np.isnan(flow_demand_slope):
         best_ask = asks_out_of_mkt[0][0]
-        flow_supply_slope += (best_ask - min_order_price) / small_rate_change
+        flow60upply_slope += (best_ask - min_order_price) / small_rate_change
         flow_demand_slope = 0
-    elif np.isnan(flow_supply_slope):
+    elif np.isnan(flow60upply_slope):
         best_bid = bids_out_of_mkt[0][0]
         flow_demand_slope -= (max_order_price - best_bid) / small_rate_change
-        flow_supply_slope = 0
+        flow60upply_slope = 0
 
-    return flow_demand_slope, flow_supply_slope, rem_quantity
+    return flow_demand_slope, flow60upply_slope, rem_quantity
 
 
 for g in range(1, num_groups_flow + 1):
     name = 'group' + str(g)
     group_mkt = []
-    for r in range(1, num_rounds - prac_rounds + 1): 
-        path = directory + 'flow{}/{}/1_market.json'.format(g, r + prac_rounds)
+    for r in range(1, num_periods - prac_periods + 1): 
+        path = directory + 'flow{}/{}/1_market.json'.format(g, r + prac_periods)
         rnd = pd.read_json(path)
         rnd = rnd[(leave_out_seconds <= rnd['timestamp']) & (rnd['timestamp'] < round_length - leave_out_seconds_end) & (rnd['before_transaction'] == False)].reset_index(drop=True)
         rnd = rnd.drop(columns=['id_in_subsession', 'before_transaction'])
@@ -350,8 +350,8 @@ for g in range(1, num_groups_flow + 1):
         group_mkt.append(rnd) 
 
     group_par = []
-    for r in range(1, num_rounds - prac_rounds + 1):
-        path = directory + 'flow{}/{}/1_participant.json'.format(g, r + prac_rounds)
+    for r in range(1, num_periods - prac_periods + 1):
+        path = directory + 'flow{}/{}/1_participant.json'.format(g, r + prac_periods)
         rnd = pd.read_json(
             path,
         )
@@ -359,9 +359,9 @@ for g in range(1, num_groups_flow + 1):
         rnd = pd.merge(rnd, group_mkt[r - 1], how='left', on='timestamp') # attache clearing price and clearing rate 
         rnd = rnd[(rnd['before_transaction'] == False)].reset_index(drop=True)
         result = rnd.groupby('timestamp')['active_orders'].agg(lambda x: [order for orders in x for order in orders]).reset_index()
-        result['round'] = r
+        result['period'] = r
         result['group'] = g
-        result['block'] = result['round'] // ((num_rounds - prac_rounds) // blocks) + (result['round'] % ((num_rounds - prac_rounds) // blocks) != 0)
+        result['block'] = result['period'] // ((num_periods - prac_periods) // blocks) + (result['period'] % ((num_periods - prac_periods) // blocks) != 0)
         result['interval'] = (result['timestamp'] // price_interval_size) + 1
         result = result[(result['timestamp'] + 1) % price_interval_size == 0]
         result['demand_slope'] = 0
@@ -383,7 +383,7 @@ for g in range(1, num_groups_flow + 1):
             diff = calculate_vertical_diff(bids_kinks, asks_kinks)
             # ppi = integral / liquidity_shares
             result.at[ind, 'ppi'] = diff / small_rate_change
-        result['format'] = 'Flow30' if g <= num_groups_flow_low else 'Flow60'
+        result['format'] = 'Flow30' if g <= num_groups_flow30 else 'Flow60'
         liquidity_flow_period = pd.concat([liquidity_flow_period, result])
 
 liquidity_flow_period['liquidity'] = liquidity_flow_period['supply_slope'] - liquidity_flow_period['demand_slope']

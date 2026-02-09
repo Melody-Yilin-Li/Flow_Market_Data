@@ -1,4 +1,4 @@
-id_in_group,direction,fill_quantity,profit,contract_price,contract_quantity,group_id,order_price,round,block,price_dev_from_contract,in_market_quantity,ce_price,format,time
+id_in_group,direction,fill_quantity,profit,contract_price,contract_quantity,group_id,order_price,period,block,price_dev_from_contract,in_market_quantity,ce_price,format,time
 1,buy,0.0,0,17.0,300.0,1,5.619047619047619,1,1,11.380952380952381,300.0,14,CDA,T1-T10
 2,buy,183.0,1216,14.0,400.0,1,9.363636363636363,1,1,4.636363636363637,200.0,14,CDA,T1-T10
 3,buy,101.0,707,17.0,300.0,1,10.156626506024097,1,1,6.843373493975903,300.0,14,CDA,T1-T10

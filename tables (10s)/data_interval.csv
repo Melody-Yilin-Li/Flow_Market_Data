@@ -1,4 +1,4 @@
-interval,quantity,weighted_price,price_change_int,round,group,block,format,price_change,ce_price,ce_quantity,cum_volume,%cumsum,price_deviation,block_1,block_2,block_3,block_4,block_5,group_id,format_num,price_deviation_log,price_change_log,log_wprice,change_log_wprice,ppi
+interval,quantity,weighted_price,price_change_int,period,group,block,format,price_change,ce_price,ce_quantity,cum_volume,%cumsum,price_deviation,block_1,block_2,block_3,block_4,block_5,group_id,format_num,price_deviation_log,price_change_log,log_wprice,change_log_wprice,ppi
 1,0.0,8.5,0.0,1,CDA1,1,CDA,,14,1100,0.0,0.0,5.5,True,False,False,False,False,1,0,1.7047480922384253,,2.1400661634962708,,2.0
 2,400.0,8.5,-2.5974025974025974,1,CDA1,1,CDA,0.0,14,1100,400.0,0.36363636363636365,5.5,True,False,False,False,False,1,0,1.7047480922384253,-6.907755278982137,2.1400661634962708,0.0,12.0
 3,0.0,8.5,0.0,1,CDA1,1,CDA,0.0,14,1100,400.0,0.36363636363636365,5.5,True,False,False,False,False,1,0,1.7047480922384253,-6.907755278982137,2.1400661634962708,0.0,2.0

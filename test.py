@@ -28,8 +28,8 @@ def df_explosion(df, col_name:str):
 
 num_groups = 4
 players_per_group = 8
-prac_rounds = 2 
-num_rounds = 22
+prac_periods = 2 
+num_periods = 22
 round_length = 120
 leave_out_seconds = 10
 penalty_cost = 20
@@ -43,8 +43,8 @@ moving_average_size = 5
 
 participant = {}
 for g in range(1, num_groups + 1): 
-    for r in range(1, num_rounds - prac_rounds + 1): 
-        path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_market.json'.format(g, r + prac_rounds)
+    for r in range(1, num_periods - prac_periods + 1): 
+        path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_market.json'.format(g, r + prac_periods)
         rnd = pd.read_json(
             path,
         )
@@ -57,7 +57,7 @@ for g in range(1, num_groups + 1):
         # # break
 
         name = 'par{}'.format(r)
-        path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_participant.json'.format(g, r + prac_rounds)
+        path = '/Users/YilinLi/Downloads/Flow_Market_Data/cda{}/{}/1_participant.json'.format(g, r + prac_periods)
         participant[name] = pd.read_json(
             path,
             )
@@ -73,7 +73,7 @@ for g in range(1, num_groups + 1):
         def calculate_final_volume(row):
             return row['transacted_volume'] + max(0, row['fill_quantity'] - row['transacted_volume'])
         participant[name]['transacted_volume'] = participant[name].apply(calculate_final_volume, axis=1)
-        participant[name]['round'] = r
+        participant[name]['period'] = r
         print(participant[name][['change_in_inventory', 'transacted_volume', 'fill_quantity', 'id_in_group', 'timestamp']][-8:])
         exit(0)
 
@@ -91,9 +91,9 @@ for g in range(1, num_groups + 1):
         df = tmp_df.groupby('id_in_subsession').aggregate({'cash': 'sum', 'fill_quantity': 'sum', 'quantity': 'sum', 'transacted_volume': 'sum'}).reset_index()
         df['ce_profit'] = ce_profit[r - 1]
         df['ce_quantity'] = ce_quantity[r - 1] 
-        df['payoff_percent'] = round(df['cash'] / df['ce_profit'], 4)
-        df['contract_percent'] = round(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
-        df['round'] = r
+        df['payoff_percent'] = period(df['cash'] / df['ce_profit'], 4)
+        df['contract_percent'] = period(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
+        df['period'] = r
 
         # print(df.loc[0, 'cash'])
         

@@ -1,4 +1,4 @@
-id_in_group,direction,fill_quantity,profit,contract_price,contract_quantity,group_id,max_price,min_price,order_price_diff,max_rate,round,block,max_rate_percent,contract_percent,in_market_quantity,price_dev_from_contract,in_market_percent,ce_price,ind_ce_profit,realized_surplus,excess_profit,format,time
+id_in_group,direction,fill_quantity,profit,contract_price,contract_quantity,group_id,max_price,min_price,order_price_diff,max_rate,period,block,max_rate_percent,contract_percent,in_market_quantity,price_dev_from_contract,in_market_percent,ce_price,ind_ce_profit,realized_surplus,excess_profit,format,time
 1,buy,0.0,0.0,17.0,300.0,1,3.0,0.0,3.0,3.0,1,1,0.1,0.0,300,14.0,0.0,14,900.0,0.0,-900.0,Flow30,T1-T10
 2,buy,150.24,1132.6,14.0,400.0,1,9.0,0.44086021505376344,8.559139784946236,6.67741935483871,1,1,0.22258064516129034,0.37560000000000004,200,5.0,0.7512000000000001,14,0.0,,1132.6,Flow30,T1-T10
 3,buy,300.0,2886.68,17.0,300.0,1,16.782608695652176,5.695652173913044,11.08695652173913,8.710144927536232,1,1,0.29033816425120773,1.0,300,0.2173913043478244,1.0,14,900.0,3.207422222222222,1986.6799999999998,Flow30,T1-T10

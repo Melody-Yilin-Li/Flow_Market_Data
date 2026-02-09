@@ -1,4 +1,4 @@
-timestamp,clearing_price,moving_average,cumulative_quantity,clearing_rate,transactions,round,group,block,format,ce_price,ce_quantity,treat,block_1,block_2,block_3,block_4,block_5,group_id,format_num,log_price,change_log_price,price_change,price_deviation
+timestamp,clearing_price,moving_average,cumulative_quantity,clearing_rate,transactions,period,group,block,format,ce_price,ce_quantity,treat,block_1,block_2,block_3,block_4,block_5,group_id,format_num,log_price,change_log_price,price_change,price_deviation
 0,14.0,,0.0,0.0,5.0,1,CDA1,1,CDA,14,1100,,True,False,False,False,False,1,0,2.6390573296152584,,,0.0
 1,14.0,,0.0,0.0,5.0,1,CDA1,1,CDA,14,1100,,True,False,False,False,False,1,0,2.6390573296152584,0.0,0.0,0.0
 2,14.0,,0.0,0.0,5.0,1,CDA1,1,CDA,14,1100,,True,False,False,False,False,1,0,2.6390573296152584,0.0,0.0,0.0
