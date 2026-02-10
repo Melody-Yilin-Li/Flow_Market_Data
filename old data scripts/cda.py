@@ -59,10 +59,10 @@ colors = ['lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', '
 volume_volatility_cda_all20 = []
 volume_volatility_cda_last10 = []
 volume_volatility_cda_first10 = []
-transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_groups_cda + 1)]
+transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_cda + 1)]
 
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     name = 'group' + str(g)
     group = []
     delta_price_all20 = []
@@ -229,7 +229,7 @@ plt.ylim(0, 20)
 plt.xlabel('Time')
 plt.ylabel('Price')
 plt.title('CDA Transaction Prices vs Time')
-plt.savefig('groups_cda_price.png')
+plt.savefig('cda_price.png')
 plt.close()
 
 
@@ -247,13 +247,13 @@ plt.xlabel('Time')
 plt.ylabel('Shares')
 plt.ylim(0, 2000)
 plt.title('CDA Cumulative Quantity vs Time')
-plt.savefig('groups_cda_cumsum.png')
+plt.savefig('cda_cumsum.png')
 plt.close()
 
 # participant-level data 
 list_participant_cda = []
 
-for g in range(1, num_groups_cda + 1): 
+for g in range(1, num_cda + 1): 
     # dictionary for market prices and rates/quantities 
     # create a list of dataframes to be concatenated after groupby 
     data_mkt = []
@@ -343,8 +343,8 @@ for g in range(1, num_groups_cda + 1):
         df = tmp_df.groupby('id_in_subsession').aggregate({'cash': 'sum', 'fill_quantity': 'sum', 'quantity': 'sum', 'transacted_quantity': 'sum',}).reset_index()
         df['ce_profit'] = ce_profit[r - 1]
         df['ce_quantity'] = ce_quantity[r - 1] 
-        df['payoff_percent'] = period(df['cash'] / df['ce_profit'], 4)
-        df['contract_percent'] = period(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
+        df['payoff_percent'] = round(df['cash'] / df['ce_profit'], 4)
+        df['contract_percent'] = round(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
         df['period'] = r
         df['orders'] = number_of_orders
         # df['transactions'] = transactions
@@ -373,15 +373,15 @@ participant_per_second_cda = reduce(lambda left, right:     # Merge DataFrames i
                               on = ['period']),
                      list_participant_cda)
 participant_per_second_cda = participant_per_second_cda.replace(0, np.NaN)
-payoffs = ['payoff_percent_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-contracts = ['contract_percent_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-unit_weighted = ['unit_weighted_price_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-quantities = ['quantity_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-orders = ['orders_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-# transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-transacted_quantities = ['transacted_quantity_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-extra_traded_quantities = ['extra_traded_quantity_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-order_sizes = ['order_size_{}'.format(g) for g in range(1, num_groups_cda + 1)]
+payoffs = ['payoff_percent_{}'.format(g) for g in range(1, num_cda + 1)]
+contracts = ['contract_percent_{}'.format(g) for g in range(1, num_cda + 1)]
+unit_weighted = ['unit_weighted_price_{}'.format(g) for g in range(1, num_cda + 1)]
+quantities = ['quantity_{}'.format(g) for g in range(1, num_cda + 1)]
+orders = ['orders_{}'.format(g) for g in range(1, num_cda + 1)]
+# transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_cda + 1)]
+transacted_quantities = ['transacted_quantity_{}'.format(g) for g in range(1, num_cda + 1)]
+extra_traded_quantities = ['extra_traded_quantity_{}'.format(g) for g in range(1, num_cda + 1)]
+order_sizes = ['order_size_{}'.format(g) for g in range(1, num_cda + 1)]
 participant_per_second_cda['mean_realized_surplus'] = participant_per_second_cda[payoffs].mean(skipna=True, axis=1)
 participant_per_second_cda['mean_contract_execution'] = participant_per_second_cda[contracts].mean(skipna=True, axis=1)
 participant_per_second_cda['mean_unit_weighted_price'] = participant_per_second_cda[unit_weighted].mean(skipna=True, axis=1)
@@ -401,7 +401,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
-plt.savefig('groups_cda_surplus.png')
+plt.savefig('cda_surplus.png')
 plt.close()
 
 # contract execution for all groups
@@ -417,7 +417,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Filled Contract vs Period')
-plt.savefig('groups_cda_contract.png')
+plt.savefig('cda_contract.png')
 plt.close()
 
 # traded volume for all groups
@@ -433,7 +433,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
-plt.savefig('groups_cda_quantity.png')
+plt.savefig('cda_quantity.png')
 plt.close()
 
 # unit weighted price for all groups
@@ -449,7 +449,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Price')
 plt.title('Unit-Weighted Price vs Period')
-plt.savefig('groups_cda_unit_weighted_price.png')
+plt.savefig('cda_unit_weighted_price.png')
 plt.close()
 
 
@@ -458,7 +458,7 @@ plt.close()
 summary_cda = participant_per_second_cda[['period', 'ce_price_1'] + unit_weighted + payoffs + contracts + transacted_quantities + orders + order_sizes + transaction_numbers + extra_traded_quantities]
 summary_cda = summary_cda.rename(columns={'ce_price_1': 'ce_price'})
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     summary_cda['price_dev_{}'.format(g)] = 0
     for ind, row in summary_cda.iterrows():
         if row['ce_price'] == 9:
@@ -519,7 +519,7 @@ transaction_number_cda_all20 = []
 transaction_number_cda_last10 = []
 transaction_number_cda_first10 = []
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     price_deviation_cda_all20.extend(summary_cda['price_dev_{}'.format(g)].tolist())
     price_deviation_cda_last10.extend(summary_cda[summary_cda['period'] > (num_periods - prac_periods) // 2]['price_dev_{}'.format(g)].tolist())
     price_deviation_cda_first10.extend(summary_cda[summary_cda['period'] <= (num_periods - prac_periods) // 2]['price_dev_{}'.format(g)].tolist())

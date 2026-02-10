@@ -83,7 +83,7 @@ colors = ['lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', '
 
 
 
-for g in range(1, num_groups_flow + 1):
+for g in range(1, num_flow + 1):
     name = 'group' + str(g)
     group_mkt = []
     for r in range(1, num_periods - prac_periods + 1): 
@@ -431,7 +431,7 @@ data_flow_contract_by_direction = data_flow_contract_by_direction.drop('timestam
 
 
 mean_flow = []
-for g in range(1, num_groups_flow + 1):
+for g in range(1, num_flow + 1):
     mean_df = individual_per_second_flow.groupby(['timestamp'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g), 'in_market_percent_{}'.format(g)]].apply(lambda x: x.abs().mean())
     mean_flow.append(mean_df)
 
@@ -442,7 +442,7 @@ data_mean_flow = reduce(
 )
 
 mean_flow_by_direction = []
-for g in range(1, num_groups_flow + 1):
+for g in range(1, num_flow + 1):
     mean_df_by_direction = individual_per_second_flow.groupby(['timestamp', 'direction'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g), 'in_market_percent_{}'.format(g)]].apply(lambda x: x.abs().mean())
     mean_flow_by_direction.append(mean_df_by_direction)
 
@@ -453,7 +453,7 @@ data_mean_flow_by_direction = reduce(
 )
 
 sum_flow_by_direction = []
-for g in range(1, num_groups_flow + 1):
+for g in range(1, num_flow + 1):
     sum_df_by_direction = individual_per_second_flow.groupby(['timestamp', 'direction'], as_index=False)['projected_profit_{}'.format(g)].apply(lambda x: x.abs().sum())
     sum_flow_by_direction.append(sum_df_by_direction)
 
@@ -478,7 +478,7 @@ plt.ylim(0, 5)
 plt.xlabel('Time')
 plt.ylabel('Benchmark Pace')
 plt.title('Mean Benchmark Pace vs Time')
-plt.savefig('groups_flow_benchmark_pace.png')
+plt.savefig('flow_benchmark_pace.png')
 plt.close()
 
 # average projected profit at group level 
@@ -493,7 +493,7 @@ plt.ylim(0, 1800)
 plt.xlabel('Time')
 plt.ylabel('Projected Profit')
 plt.title('Mean Projected Profit vs Time')
-plt.savefig('groups_flow_projected_profit.png')
+plt.savefig('flow_projected_profit.png')
 plt.close()
 
 
@@ -503,7 +503,7 @@ data_mean_flow_by_direction.loc[data_mean_flow_by_direction['direction'] == 'sel
 df_long = data_mean_flow_by_direction.melt(id_vars=['timestamp', 'direction'], value_vars=projected_profits, var_name='group_id', value_name='projected_profit')
 df_long['group_id'] = df_long['group_id'].str.replace('projected_profit', 'group')
 
-sns.lineplot(data=df_long, x='timestamp', y='projected_profit', hue='group_id', style='direction', palette=colors[:num_groups_flow], legend='full')
+sns.lineplot(data=df_long, x='timestamp', y='projected_profit', hue='group_id', style='direction', palette=colors[:num_flow], legend='full')
 plt.hlines(y=0, xmin=0, xmax=(num_periods-prac_periods) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='dotted')
 plt.legend(bbox_to_anchor=(1, 1),
         loc='upper left',
@@ -512,7 +512,7 @@ plt.ylim(-2550, 2550)
 plt.xlabel('Time')
 plt.ylabel('Projected Profit (+ for buyers/- for sellers)')
 plt.title('Mean Projected Profit vs Time')
-plt.savefig('groups_flow_projected_profit_by_direction.png')
+plt.savefig('flow_projected_profit_by_direction.png')
 plt.close()
 
 
@@ -542,7 +542,7 @@ plt.ylim(-0.1, 1.5)
 plt.xlabel('Time')
 plt.ylabel('Realized Surplus')
 plt.title('Mean Realized Surplus vs Time')
-plt.savefig('groups_flow30ealized_surplus_ind_truncated.png')
+plt.savefig('flow30ealized_surplus_ind_truncated.png')
 plt.close()
 
 
@@ -579,7 +579,7 @@ excess_profits_sell_flow_ind_all20 = []
 excess_profits_sell_flow_ind_last10 = []
 excess_profits_sell_flow_ind_first10 = []
 
-for g in range(1, num_groups_flow + 1):
+for g in range(1, num_flow + 1):
     realized_surplus_buy_flow_all20.append(summary_flow_by_direction[summary_flow_by_direction['direction'] == 'buy']['realized_surplus_{}'.format(g)].mean())
     realized_surplus_buy_flow_last10.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'buy') & (summary_flow_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].mean())
     realized_surplus_buy_flow_first10.append(summary_flow_by_direction[(summary_flow_by_direction['direction'] == 'buy') & (summary_flow_by_direction['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].mean())
@@ -634,5 +634,5 @@ plt.title('CDF of the Excess Profits (FLOW)')
 plt.xlabel('Excess Profits')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig('groups_flow_excess_profits_cdf.png')
+plt.savefig('flow_excess_profits_cdf.png')
 plt.close()

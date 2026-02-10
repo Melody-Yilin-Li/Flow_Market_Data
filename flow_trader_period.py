@@ -15,7 +15,7 @@ if __name__ == "__main__":
 flow_trader_period = pd.DataFrame()
 cda_trader_period = pd.DataFrame()
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     name = 'group' + str(g)
     group_par = []
     for r in range(1, num_periods - prac_periods + 1):
@@ -90,7 +90,7 @@ for g in range(1, num_groups_cda + 1):
 cda_trader_period.to_csv(os.path.join(tables_dir, 'cda_trader_period.csv'), index=False)
 
 
-for g in range(1, num_groups_flow + 1):
+for g in range(1, num_flow + 1):
     name = 'group' + str(g)
     group_par = []
     for r in range(1, num_periods - prac_periods + 1):
@@ -124,7 +124,7 @@ for g in range(1, num_groups_flow + 1):
         summary = orders_df.groupby(['group_id', 'id_in_group'])[['max_price', 'min_price', 'order_price_diff', 'max_rate']].mean().reset_index()
         summary['period'] = r
         summary['block'] = summary['period'] // ((num_periods - prac_periods) // blocks) + (summary['period'] % ((num_periods - prac_periods) // blocks) != 0)
-        summary['max_rate_percent'] = summary['max_rate'] / max_order_rate30 if g <= num_groups_flow30 else summary['max_rate'] / max_order_rate60
+        summary['max_rate_percent'] = summary['max_rate'] / max_order_rate30 if g <= num_flow30 else summary['max_rate'] / max_order_rate60
 
 
         rnd = rnd.explode('active_contracts')
@@ -160,7 +160,7 @@ for g in range(1, num_groups_flow + 1):
         rnd['excess_profit'] = rnd['profit'] - rnd['ind_ce_profit']
         rnd.loc[(rnd['ind_ce_profit'] == 0) & (rnd['profit'] >= 0), 'realized_surplus'] = np.nan
         rnd.loc[(rnd['ind_ce_profit'] == 0) & (rnd['profit'] < 0), 'realized_surplus'] = np.nan
-        rnd['format'] = 'Flow30' if g <= num_groups_flow30 else 'Flow60'
+        rnd['format'] = 'Flow30' if g <= num_flow30 else 'Flow60'
         rnd['time']  = 'T1-T10' if r <= (num_periods - prac_periods) // 2 else 'T11-T20'
     
         flow_trader_period = pd.concat([flow_trader_period, rnd], ignore_index=True, sort=False)
@@ -170,20 +170,20 @@ flow_trader_period.to_csv(os.path.join(tables_dir, 'flow_trader_period.csv'), in
 
 ########## CDF ##########
 # pH - pL
-sorted_order_price_diff_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['order_price_diff'].tolist())
-sorted_order_price_diff_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['order_price_diff'].tolist())
-sorted_order_price_diff_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['order_price_diff'].tolist())
-sorted_order_price_diff_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['order_price_diff'].tolist())
+sorted_order_price_diff_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy')]['order_price_diff'].tolist())
+sorted_order_price_diff_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy')]['order_price_diff'].tolist())
+sorted_order_price_diff_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell')]['order_price_diff'].tolist())
+sorted_order_price_diff_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell')]['order_price_diff'].tolist())
 
-sorted_order_price_diff_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
-sorted_order_price_diff_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
-sorted_order_price_diff_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
-sorted_order_price_diff_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
+sorted_order_price_diff_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
+sorted_order_price_diff_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
+sorted_order_price_diff_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
+sorted_order_price_diff_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
 
-sorted_order_price_diff_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
-sorted_order_price_diff_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
-sorted_order_price_diff_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
-sorted_order_price_diff_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
+sorted_order_price_diff_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
+sorted_order_price_diff_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
+sorted_order_price_diff_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
+sorted_order_price_diff_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['order_price_diff'].tolist())
 
 cumulative_prob_order_price_diff_buy_flow30 = np.arange(1, len(sorted_order_price_diff_buy_flow30) + 1) / len(sorted_order_price_diff_buy_flow30)
 cumulative_prob_order_price_diff_buy_flow60 = np.arange(1, len(sorted_order_price_diff_buy_flow60) + 1) / len(sorted_order_price_diff_buy_flow60)
@@ -209,7 +209,7 @@ plt.title('CDF of the Order Price Difference (T1-T20)')
 plt.xlabel('Order Width')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_order_price_diff_cdf_all20.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_order_price_diff_cdf_all20.png')) # figure 9
 plt.close()
 
 
@@ -226,24 +226,24 @@ plt.title('CDF of the Order Price Difference')
 plt.xlabel('Order Width')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_order_price_diff_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_order_price_diff_cdf_all.png'))
 plt.close()
 
 # realized surplus
-sorted_realized_surplus_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['realized_surplus'].tolist())
-sorted_realized_surplus_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy')]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy')]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell')]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell')]['realized_surplus'].tolist())
 
-sorted_realized_surplus_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
-sorted_realized_surplus_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
 
-sorted_realized_surplus_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
-sorted_realized_surplus_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
-sorted_realized_surplus_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
+sorted_realized_surplus_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
+sorted_realized_surplus_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['realized_surplus'].tolist())
 
 cumulative_prob_realized_surplus_buy_flow30 = np.arange(1, len(sorted_realized_surplus_buy_flow30) + 1) / len(sorted_realized_surplus_buy_flow30)
 cumulative_prob_realized_surplus_buy_flow60 = np.arange(1, len(sorted_realized_surplus_buy_flow60) + 1) / len(sorted_realized_surplus_buy_flow60)
@@ -269,7 +269,7 @@ plt.title('CDF of the Realized Surplus (T1-T20)')
 plt.xlabel('Realized Surplus')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_realized_surplus_cdf_all20.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_realized_surplus_cdf_all20.png'))
 plt.close()
 
 plt.figure(figsize=(8, 6))
@@ -285,29 +285,29 @@ plt.title('CDF of the Realized Surplus')
 plt.xlabel('Realized Surplus')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_realized_surplus_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_realized_surplus_cdf_all.png'))
 plt.close()
 
 
 # price deviation from contract price
-sorted_price_dev_from_contract_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy')]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy')]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell')]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell')]['price_dev_from_contract'].tolist())
 sorted_price_dev_from_contract_buy_cda = np.sort(cda_trader_period[(cda_trader_period['direction'] == 'buy')]['price_dev_from_contract'].tolist())
 sorted_price_dev_from_contract_sell_cda = np.sort(cda_trader_period[(cda_trader_period['direction'] == 'sell')]['price_dev_from_contract'].tolist())
 
-sorted_price_dev_from_contract_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
 sorted_price_dev_from_contract_buy_cda_first10 = np.sort(cda_trader_period[(cda_trader_period['direction'] == 'buy') & (cda_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
 sorted_price_dev_from_contract_sell_cda_first10 = np.sort(cda_trader_period[(cda_trader_period['direction'] == 'sell') & (cda_trader_period['period'] <= (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())    
 
-sorted_price_dev_from_contract_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
-sorted_price_dev_from_contract_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
+sorted_price_dev_from_contract_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
 sorted_price_dev_from_contract_buy_cda_last10 = np.sort(cda_trader_period[(cda_trader_period['direction'] == 'buy') & (cda_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
 sorted_price_dev_from_contract_sell_cda_last10 = np.sort(cda_trader_period[(cda_trader_period['direction'] == 'sell') & (cda_trader_period['period'] > (num_periods - prac_periods) // 2)]['price_dev_from_contract'].tolist())
 
@@ -343,7 +343,7 @@ plt.title('CDF of the Price Deviation from Contract Price (T1-T20)')
 plt.xlabel('Price Minimum Margin')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_price_dev_from_contract_cdf_all20.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_price_dev_from_contract_cdf_all20.png')) # appendix figure 6
 plt.close()
 
 zero_counts = {
@@ -380,25 +380,25 @@ plt.title('CDF of the Price Deviation from Contract Price')
 plt.xlabel('Price Minimum Margin')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_price_dev_from_contract_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_price_dev_from_contract_cdf_all.png'))
 plt.close()
 
 
 # max rate 
-sorted_max_rate_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['max_rate'].tolist())
-sorted_max_rate_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['max_rate'].tolist())
-sorted_max_rate_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['max_rate'].tolist())
-sorted_max_rate_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['max_rate'].tolist())
+sorted_max_rate_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy')]['max_rate'].tolist())
+sorted_max_rate_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy')]['max_rate'].tolist())
+sorted_max_rate_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell')]['max_rate'].tolist())
+sorted_max_rate_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell')]['max_rate'].tolist())
 
-sorted_max_rate_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate'].tolist())
-sorted_max_rate_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate'].tolist())
-sorted_max_rate_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate'].tolist())
-sorted_max_rate_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate'].tolist())
+sorted_max_rate_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate'].tolist())
+sorted_max_rate_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate'].tolist())
+sorted_max_rate_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate'].tolist())
+sorted_max_rate_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate'].tolist())
 
-sorted_max_rate_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate'].tolist())
-sorted_max_rate_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate'].tolist())
-sorted_max_rate_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate'].tolist())
-sorted_max_rate_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate'].tolist())
+sorted_max_rate_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate'].tolist())
+sorted_max_rate_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate'].tolist())
+sorted_max_rate_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate'].tolist())
+sorted_max_rate_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate'].tolist())
 
 cumulative_prob_max_rate_buy_flow30 = np.arange(1, len(sorted_max_rate_buy_flow30) + 1) / len(sorted_max_rate_buy_flow30)
 cumulative_prob_max_rate_buy_flow60 = np.arange(1, len(sorted_max_rate_buy_flow60) + 1) / len(sorted_max_rate_buy_flow60)
@@ -424,7 +424,7 @@ plt.title('CDF of the Max Rate (T1-T20)')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir,  'groups_flow_max_rate_cdf_all20.png'))
+plt.savefig(os.path.join(figures_dir,  'flow_max_rate_cdf_all20.png')) # figure 7
 plt.close()
 
 plt.figure(figsize=(8, 6))
@@ -440,24 +440,24 @@ plt.title('CDF of the Max Rate')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_max_rate_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_max_rate_cdf_all.png')) # appendix figure 7
 plt.close()
 
 # max rate percent 
-sorted_max_rate_percent_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['max_rate_percent'].tolist())
-sorted_max_rate_percent_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['max_rate_percent'].tolist())
-sorted_max_rate_percent_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['max_rate_percent'].tolist())
-sorted_max_rate_percent_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['max_rate_percent'].tolist())
+sorted_max_rate_percent_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy')]['max_rate_percent'].tolist())
+sorted_max_rate_percent_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy')]['max_rate_percent'].tolist())
+sorted_max_rate_percent_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell')]['max_rate_percent'].tolist())
+sorted_max_rate_percent_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell')]['max_rate_percent'].tolist())
 
-sorted_max_rate_percent_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
-sorted_max_rate_percent_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
-sorted_max_rate_percent_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
-sorted_max_rate_percent_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
+sorted_max_rate_percent_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
+sorted_max_rate_percent_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
+sorted_max_rate_percent_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
+sorted_max_rate_percent_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
 
-sorted_max_rate_percent_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
-sorted_max_rate_percent_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
-sorted_max_rate_percent_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
-sorted_max_rate_percent_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
+sorted_max_rate_percent_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
+sorted_max_rate_percent_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
+sorted_max_rate_percent_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
+sorted_max_rate_percent_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['max_rate_percent'].tolist())
 
 cumulative_prob_max_rate_percent_buy_flow30 = np.arange(1, len(sorted_max_rate_percent_buy_flow30) + 1) / len(sorted_max_rate_percent_buy_flow30)
 cumulative_prob_max_rate_percent_buy_flow60 = np.arange(1, len(sorted_max_rate_percent_buy_flow60) + 1) / len(sorted_max_rate_percent_buy_flow60)
@@ -483,7 +483,7 @@ plt.title('CDF of the Max Rate (T1-T20)')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_max_rate_percent_cdf_all20.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_max_rate_percent_cdf_all20.png'))
 plt.close()
 
 
@@ -500,22 +500,22 @@ plt.title('CDF of the Max Rate')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_max_rate_percent_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_max_rate_percent_cdf_all.png'))
 plt.close()
 
 # excess profit
-sorted_excess_profit_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['excess_profit'].tolist())
-sorted_excess_profit_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy')]['excess_profit'].tolist())
-sorted_excess_profit_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['excess_profit'].tolist())
-sorted_excess_profit_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell')]['excess_profit'].tolist())
-sorted_excess_profit_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
-sorted_excess_profit_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
-sorted_excess_profit_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
-sorted_excess_profit_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
-sorted_excess_profit_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
-sorted_excess_profit_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
-sorted_excess_profit_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
-sorted_excess_profit_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_groups_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
+sorted_excess_profit_buy_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy')]['excess_profit'].tolist())
+sorted_excess_profit_buy_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy')]['excess_profit'].tolist())
+sorted_excess_profit_sell_flow30 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell')]['excess_profit'].tolist())
+sorted_excess_profit_sell_flow60 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell')]['excess_profit'].tolist())
+sorted_excess_profit_buy_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
+sorted_excess_profit_buy_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
+sorted_excess_profit_sell_flow30_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
+sorted_excess_profit_sell_flow60_first10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] <= (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
+sorted_excess_profit_buy_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
+sorted_excess_profit_buy_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'buy') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
+sorted_excess_profit_sell_flow30_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] <= num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
+sorted_excess_profit_sell_flow60_last10 = np.sort(flow_trader_period[(flow_trader_period['group_id'] > num_flow30) & (flow_trader_period['direction'] == 'sell') & (flow_trader_period['period'] > (num_periods - prac_periods) // 2)]['excess_profit'].tolist())
 cumulative_prob_excess_profit_buy_flow30 = np.arange(1, len(sorted_excess_profit_buy_flow30) + 1) / len(sorted_excess_profit_buy_flow30)
 cumulative_prob_excess_profit_buy_flow60 = np.arange(1, len(sorted_excess_profit_buy_flow60) + 1) / len(sorted_excess_profit_buy_flow60)
 cumulative_prob_excess_profit_sell_flow30 = np.arange(1, len(sorted_excess_profit_sell_flow30) + 1) / len(sorted_excess_profit_sell_flow30)
@@ -558,7 +558,7 @@ ax.set_xlabel('pH - pL')
 ax.set_ylabel('Excess Profit')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_pH-pL_vs_excess_profit.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_pH-pL_vs_excess_profit.png')) # appendix figure 9b
 plt.close()
 
 
@@ -582,7 +582,7 @@ ax.set_xlabel('Max Rate Percent')
 ax.set_ylabel('Excess Profit')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_max_rate_percent_vs_excess_profit.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_max_rate_percent_vs_excess_profit.png')) # appendix figure 9a
 plt.close()
 
 # price_dev_from_contract vs excess profit
@@ -605,7 +605,7 @@ ax.set_xlabel('Price Deviation from Contract Price')
 ax.set_ylabel('Excess Profits')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_price_dev_from_contract_vs_excess_profit.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_price_dev_from_contract_vs_excess_profit.png')) # appendix figure 9c
 plt.close()
 
 
@@ -630,7 +630,7 @@ ax.set_xlabel('Max Rate Percent')
 ax.set_ylabel('Realized Surplus')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig(os.path.join(figures_dir, 'groups_flow_max_rate_percent_vs_realized_surplus.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_max_rate_percent_vs_realized_surplus.png')) # appendix figure 8
 plt.close()
 
 

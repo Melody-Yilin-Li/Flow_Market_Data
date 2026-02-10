@@ -36,12 +36,12 @@ def getFirstHalf(full, lastHalf):
 def calculate_diff(group):
     return group.iloc[0] - group.iloc[-1]
 
-# period all floats to 2 decimals
+# round all floats to 2 decimals
 def remove_paren(s, dec):
     if isinstance(s, list):
-        return '[{}, {}]'.format(str(period(s[0], dec)), str(period(s[1], dec)))
+        return '[{}, {}]'.format(str(round(s[0], dec)), str(round(s[1], dec)))
     elif isinstance(s, str) and s and s[0] == '(' and s[-1] == ')':
-        return '(' + str(period(float(s[1:-1]))) + ')' if dec == 0 else '(' + str(period(float(s[1:-1]), dec)) + ')'
+        return '(' + str(round(float(s[1:-1]))) + ')' if dec == 0 else '(' + str(round(float(s[1:-1]), dec)) + ')'
     else:
         return s
 
@@ -66,30 +66,30 @@ regress_data_liquidity = regress_data_liquidity.drop('format', axis=1)
 liquidity = [
     ['PPI',
     liquidity_cda_period[liquidity_cda_period['format'] == 'CDA']['liquidity'].mean(), 
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['group'] <= num_groups_flow30)]['liquidity'].mean(),
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['group'] > num_groups_flow30)]['liquidity'].mean(),
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['group'] <= num_flow30)]['liquidity'].mean(),
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['group'] > num_flow30)]['liquidity'].mean(),
     liquidity_cda_period[(liquidity_cda_period['format'] == 'CDA') & (liquidity_cda_period['period'] > (num_periods - prac_periods) // 2)]['liquidity'].mean(), 
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] <= num_groups_flow30)]['liquidity'].mean(),
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] > num_groups_flow30)]['liquidity'].mean()],
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] <= num_flow30)]['liquidity'].mean(),
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] > num_flow30)]['liquidity'].mean()],
 ]
 
 liquidity_all20 = [
     ['PPI',
     liquidity_cda_period[liquidity_cda_period['format'] == 'CDA']['liquidity'].mean(), 
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['group'] <= num_groups_flow30)]['liquidity'].mean(),
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['group'] > num_groups_flow30)]['liquidity'].mean(),
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['group'] <= num_flow30)]['liquidity'].mean(),
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['group'] > num_flow30)]['liquidity'].mean(),
     liquidity_cda_period[(liquidity_cda_period['format'] == 'CDA') & (liquidity_cda_period['period'] <= (num_periods - prac_periods) // 2)]['liquidity'].mean(), 
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] <= (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] <= num_groups_flow30)]['liquidity'].mean(),
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] <= (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] > num_groups_flow30)]['liquidity'].mean(),
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] <= (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] <= num_flow30)]['liquidity'].mean(),
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] <= (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] > num_flow30)]['liquidity'].mean(),
     liquidity_cda_period[(liquidity_cda_period['format'] == 'CDA') & (liquidity_cda_period['period'] > (num_periods - prac_periods) // 2)]['liquidity'].mean(), 
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] <= num_groups_flow30)]['liquidity'].mean(),
-    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] > num_groups_flow30)]['liquidity'].mean()],
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] <= num_flow30)]['liquidity'].mean(),
+    liquidity_flow_period[(liquidity_flow_period['format'] == 'FLOW') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2) & (liquidity_flow_period['group'] > num_flow30)]['liquidity'].mean()],
 ]
 
 for i, sublist in enumerate(liquidity):
     for j, element in enumerate(sublist):
         if isinstance(element, float):
-            liquidity[i][j] = period(element, 2)
+            liquidity[i][j] = round(element, 2)
 
 print('FLOW trader/period')
 exec(open(data_directory + 'flow_trader_period.py').read())
@@ -101,11 +101,10 @@ print('FLOW RESULTS')
 exec(open(data_directory + 'flow.py').read())
 
 print('CDA INDIVIDUAL RESULTS')
-exec(open(data_directory + 'list_individual_cda.py').read())
+exec(open(data_directory + 'cda_individual.py').read())
 
 print('FLOW INDIVIDUAL RESULTS')
-exec(open(data_directory + 'list_individual_flow.py').read())
-
+exec(open(data_directory + 'flow_individual.py').read())
 
 exec(open(data_directory + 'new_plots.py').read())
 
@@ -113,9 +112,9 @@ exec(open(data_directory + 'new_plots.py').read())
 check_negative_flow = list(filter(lambda x: x < 0, profits_buy_flow30_ind_all20 + profits_sell_flow30_ind_all20 + profits_buy_flow60_ind_all20 + profits_sell_flow60_ind_all20))
 check_negative_cda = list(filter(lambda x: x < 0, profits_buy_cda_ind_all20 + profits_sell_cda_ind_all20))
 print(
-    'overall negative end-of-period profits count: ', period((len(check_negative_flow) + len(check_negative_cda)) / len(profits_buy_cda_ind_all20 + profits_sell_cda_ind_all20 + profits_buy_flow30_ind_all20 + profits_sell_flow30_ind_all20 + profits_buy_flow60_ind_all20 + profits_sell_flow60_ind_all20), 4), 
-    '\nCDA negative end-of-period profits count: ', period(len(check_negative_cda) / len(profits_buy_cda_ind_all20 + profits_sell_cda_ind_all20), 4),
-    '\nFLOW negative end-of-period profits count: ', period(len(check_negative_flow) / len(profits_buy_flow30_ind_all20 + profits_sell_flow30_ind_all20 + profits_buy_flow60_ind_all20 + profits_sell_flow60_ind_all20), 4),
+    'overall negative end-of-period profits count: ', round((len(check_negative_flow) + len(check_negative_cda)) / len(profits_buy_cda_ind_all20 + profits_sell_cda_ind_all20 + profits_buy_flow30_ind_all20 + profits_sell_flow30_ind_all20 + profits_buy_flow60_ind_all20 + profits_sell_flow60_ind_all20), 4), 
+    '\nCDA negative end-of-period profits count: ', round(len(check_negative_cda) / len(profits_buy_cda_ind_all20 + profits_sell_cda_ind_all20), 4),
+    '\nFLOW negative end-of-period profits count: ', round(len(check_negative_flow) / len(profits_buy_flow30_ind_all20 + profits_sell_flow30_ind_all20 + profits_buy_flow60_ind_all20 + profits_sell_flow60_ind_all20), 4),
 )
 
 # create data frames for regressions 
@@ -223,48 +222,48 @@ regress_data_liquidity.to_csv(os.path.join(tables_dir, 'data_liquidity.csv'), in
 ### use raw prices from each second
 print("unweighted price statistics", 
     '\nAverage Price & {} & {} & {} & {} & {} & {} & {} & {} & {}'.format(
-    regress_data_second[(regress_data_second['format'] == 'CDA')]['clearing_price'].mean().period(2),
-    regress_data_second[(regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().period(2),
-    regress_data_second[(regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['clearing_price'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['clearing_price'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().period(2),
+    regress_data_second[(regress_data_second['format'] == 'CDA')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['clearing_price'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['clearing_price'].mean().round(2),
     ),
     '\n|Price - P_CE| & {} & {} & {} & {} & {} & {} & {} & {} & {}'.format(
-    regress_data_second[(regress_data_second['format'] == 'CDA')]['price_deviation'].mean().period(2),
-    regress_data_second[(regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().period(2),
-    regress_data_second[(regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['price_deviation'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['price_deviation'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().period(2),
-    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().period(2),
+    regress_data_second[(regress_data_second['format'] == 'CDA')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['price_deviation'].mean().round(2),
+    regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['price_deviation'].mean().round(2),
     ),
     '\n|P_t - P_t - 1| & {} & {} & {} & {} & {} & {} & {} & {} & {}'.format(
-    abs(regress_data_second[(regress_data_second['format'] == 'CDA')]['price_change']).mean().period(2),
-    abs(regress_data_second[(regress_data_second['format'] == 'Flow30')]['price_change']).mean().period(2),
-    abs(regress_data_second[(regress_data_second['format'] == 'Flow60')]['price_change']).mean().period(2),
-    abs(regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['price_change']).mean().period(2),
-    abs(regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['price_change']).mean().period(2),
-    abs(regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['price_change']).mean().period(2),
-    abs(regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['price_change']).mean().period(2),
-    abs(regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['price_change']).mean().period(2),
-    abs(regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['price_change']).mean().period(2),
+    abs(regress_data_second[(regress_data_second['format'] == 'CDA')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['format'] == 'Flow30')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['format'] == 'Flow60')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['period'] <= (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'CDA')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow30')]['price_change']).mean().round(2),
+    abs(regress_data_second[(regress_data_second['period'] > (num_periods - prac_periods) // 2) & (regress_data_second['format'] == 'Flow60')]['price_change']).mean().round(2),
     ),
     '\nStd(ln P_t - ln P_t - 1) & {} & {} & {} & {} & {} & {} & {} & {} & {}'.format(
-    regress_data_period[(regress_data_period['format'] == 'CDA')]['change_log_price'].mean().period(2),
-    regress_data_period[(regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().period(2),
-    regress_data_period[(regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().period(2),
-    regress_data_period[(regress_data_period['period'] <= (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'CDA')]['change_log_price'].mean().period(2),
-    regress_data_period[(regress_data_period['period'] <= (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().period(2),
-    regress_data_period[(regress_data_period['period'] <= (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().period(2),
-    regress_data_period[(regress_data_period['period'] > (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'CDA')]['change_log_price'].mean().period(2),
-    regress_data_period[(regress_data_period['period'] > (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().period(2),
-    regress_data_period[(regress_data_period['period'] > (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().period(2),
+    regress_data_period[(regress_data_period['format'] == 'CDA')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['period'] <= (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'CDA')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['period'] <= (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['period'] <= (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['period'] > (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'CDA')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['period'] > (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'Flow30')]['change_log_price'].mean().round(2),
+    regress_data_period[(regress_data_period['period'] > (num_periods - prac_periods) // 2) & (regress_data_period['format'] == 'Flow60')]['change_log_price'].mean().round(2),
     )
 )
 
@@ -468,8 +467,8 @@ summary_market_short = [
         ],
     ['PPI',
         liquidity_cda_period[liquidity_cda_period['format'] == 'CDA']['ppi'].mean(), 
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow30') & (liquidity_flow_period['group'] <= num_groups_flow30)]['ppi'].mean(),
-        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow60') & (liquidity_flow_period['group'] > num_groups_flow30)]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow30') & (liquidity_flow_period['group'] <= num_flow30)]['ppi'].mean(),
+        liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow60') & (liquidity_flow_period['group'] > num_flow30)]['ppi'].mean(),
         liquidity_cda_period[(liquidity_cda_period['format'] == 'CDA') & (liquidity_cda_period['period'] > (num_periods - prac_periods) // 2)]['ppi'].mean(), 
         liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow30') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2)]['ppi'].mean(),
         liquidity_flow_period[(liquidity_flow_period['format'] == 'Flow60') & (liquidity_flow_period['period'] > (num_periods - prac_periods) // 2)]['ppi'].mean(), 
@@ -954,14 +953,14 @@ summary_trader_short = [
 ]
 
 
-summary_market_short = [[period(num, 2) if isinstance(num, float) else remove_paren(num, 2) for num in sublist] for sublist in summary_market_short]
-summary_market_all20 = [[period(num, 2) if isinstance(num, float) else remove_paren(num, 2) for num in sublist] for sublist in summary_market_all20]  
-summary_trader_short = [[period(num, 2) if isinstance(num, float) else remove_paren(num, 2) for num in sublist] for sublist in summary_trader_short]
-summary_trader_all20 = [[period(num, 2) if isinstance(num, float) else remove_paren(num, 2) for num in sublist] for sublist in summary_trader_all20]
-summary_market_short_int = [[period(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_market_short]
-summary_market_all20_int = [[period(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_market_all20]
-summary_trader_short_int = [[period(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_trader_short]
-summary_trader_all20_int = [[period(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_trader_all20]
+summary_market_short = [[round(num, 2) if isinstance(num, float) else remove_paren(num, 2) for num in sublist] for sublist in summary_market_short]
+summary_market_all20 = [[round(num, 2) if isinstance(num, float) else remove_paren(num, 2) for num in sublist] for sublist in summary_market_all20]  
+summary_trader_short = [[round(num, 2) if isinstance(num, float) else remove_paren(num, 2) for num in sublist] for sublist in summary_trader_short]
+summary_trader_all20 = [[round(num, 2) if isinstance(num, float) else remove_paren(num, 2) for num in sublist] for sublist in summary_trader_all20]
+summary_market_short_int = [[round(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_market_short]
+summary_market_all20_int = [[round(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_market_all20]
+summary_trader_short_int = [[round(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_trader_short]
+summary_trader_all20_int = [[round(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_trader_all20]
 
 # output to a latex table 
 summary_trader_short_table = tabulate(summary_trader_short, headers='firstrow', tablefmt='latex')
@@ -1312,7 +1311,7 @@ plt.xlabel('Gross / CE Profits')
 plt.ylabel('Cumulative Probability')
 plt.grid(True)
 plt.legend(loc='lower right')
-plt.savefig(os.path.join(figures_dir, 'group_gross_profits_cdf.png'))
+plt.savefig(os.path.join(figures_dir, 'group_gross_profits_cdf.png')) # figure 6 
 plt.close()
 
 
@@ -1340,6 +1339,19 @@ plt.xlabel('Gross / CE Profits')
 plt.ylabel('Cumulative Probability')
 plt.grid(True)
 plt.legend(loc='lower right')
-plt.savefig(os.path.join(figures_dir, 'group_gross_profits_last10_cdf.png'))
+plt.savefig(os.path.join(figures_dir, 'group_gross_profits_last10_cdf.png')) # appendix figure 3
 plt.close()
 
+plt.figure(figsize=(8, 5))
+plt.plot(summary_cda['timestamp'], summary_cda['mean_cumulative_quantity_percent'], linestyle='solid', c='green', label='CDA')
+plt.plot(summary_flow_r['timestamp'], summary_flow_r['mean_cumulative_quantity_percent'], c='green', linestyle='dashed', label='Flow30')
+plt.plot(summary_flow_s['timestamp'], summary_flow_s['mean_cumulative_quantity_percent'], c='green', linestyle='dotted', label='Flow60')
+plt.hlines(y=1, xmin=1, xmax=round_length, colors='plum', linestyles='--')
+plt.xticks(np.arange(1, round_length + 2, 10), np.arange(0, round_length + 1, 10))
+plt.xlabel('Time')
+plt.ylabel('Percent')
+plt.ylim(0, 1.1)
+plt.legend(loc='lower right')
+# plt.title('Flow60 Cumulative / CE Quantity vs Time')
+plt.savefig(os.path.join(figures_dir, 'cumsum_compress_all.png')) # figure 8
+plt.close()

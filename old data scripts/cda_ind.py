@@ -79,7 +79,7 @@ colors = ['lightgreen', 'lightblue', 'lavender', 'moccasin', 'lightsteelblue', '
 
 
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     name = 'group' + str(g)
     group_mkt = []
     for r in range(1, num_periods - prac_periods + 1): 
@@ -403,7 +403,7 @@ for g in range(1, num_groups_cda + 1):
 individual_per_second_cda = reduce(lambda left, right:    # Merge DataFrames in list
                      pd.merge(left , right,
                               on = ['timestamp', 'id_in_group', 'direction', 'ce_price', 'ce_quantity',],
-                            #   suffixes=tuple(['_{}'.format(i) for i in range(1, num_groups_cda + 1)]),
+                            #   suffixes=tuple(['_{}'.format(i) for i in range(1, num_cda + 1)]),
                               ),
                      list_individual_cda) 
 
@@ -424,7 +424,7 @@ data_cda_contract_by_direction = data_cda_contract_by_direction.drop('timestamp'
 # print(list_individual_cda, individual_per_second_cda, individual_per_second_cda.columns)
 # exit(0)
 mean_cda = []
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     mean_df = individual_per_second_cda.groupby(['timestamp'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g)]].apply(lambda x: x.abs().mean())
     mean_cda.append(mean_df)
 
@@ -435,7 +435,7 @@ data_mean_cda = reduce(
 )
 
 mean_cda_by_direction = []
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     mean_df_by_direction = individual_per_second_cda.groupby(['timestamp', 'direction'], as_index=False)[['benchmark_pace_{}'.format(g), 'projected_profit_{}'.format(g)]].apply(lambda x: x.abs().mean())
     mean_cda_by_direction.append(mean_df_by_direction)
 
@@ -446,7 +446,7 @@ data_mean_cda_by_direction = reduce(
 )
 
 sum_cda_by_direction = []
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     sum_df_by_direction = individual_per_second_cda.groupby(['timestamp', 'direction'], as_index=False)['projected_profit_{}'.format(g)].apply(lambda x: x.abs().sum())
     sum_cda_by_direction.append(sum_df_by_direction)
 
@@ -474,7 +474,7 @@ plt.ylim(0, 5)
 plt.xlabel('Time')
 plt.ylabel('Benchmark Pace')
 plt.title('Benchmark Pace vs Time')
-plt.savefig('groups_cda_benchmark_pace.png')
+plt.savefig('cda_benchmark_pace.png')
 plt.close()
 
 # average projected profit at group level 
@@ -489,7 +489,7 @@ plt.ylim(0, 1800)
 plt.xlabel('Time')
 plt.ylabel('Projected Profit')
 plt.title('Mean Projected Profit vs Time')
-plt.savefig('groups_cda_projected_profit.png')
+plt.savefig('cda_projected_profit.png')
 plt.close()
 
 # average projected profit at group level (by direction)
@@ -498,7 +498,7 @@ data_mean_cda_by_direction.loc[data_mean_cda_by_direction['direction'] == 'sell'
 df_long = data_mean_cda_by_direction.melt(id_vars=['timestamp', 'direction'], value_vars=projected_profits, var_name='group_id', value_name='projected_profit')
 df_long['group_id'] = df_long['group_id'].str.replace('projected_profit', 'group')
 
-sns.lineplot(data=df_long, x='timestamp', y='projected_profit', hue='group_id', style='direction', palette=colors[:num_groups_cda], legend='full')
+sns.lineplot(data=df_long, x='timestamp', y='projected_profit', hue='group_id', style='direction', palette=colors[:num_cda], legend='full')
 plt.hlines(y=0, xmin=0, xmax=(num_periods-prac_periods) * (round_length - leave_out_seconds - leave_out_seconds_end), colors='plum', linestyles='dotted')
 plt.legend(bbox_to_anchor=(1, 1),
         loc='upper left',
@@ -507,7 +507,7 @@ plt.ylim(-2550, 2550)
 plt.xlabel('Time')
 plt.ylabel('Projected Profit')
 plt.title('Mean Projected Profit vs Time')
-plt.savefig('groups_cda_projected_profit_by_direction.png')
+plt.savefig('cda_projected_profit_by_direction.png')
 plt.close()
 
 
@@ -535,7 +535,7 @@ for l in range(len(realized_surpluses)):
 plt.ylim(-0.1, 1.5)
 plt.xlabel('Time')
 plt.ylabel('Realized Surplus')
-plt.savefig('groups_cda_realized_surplus_ind_truncated.png')
+plt.savefig('cda_realized_surplus_ind_truncated.png')
 plt.close()
 
 
@@ -570,7 +570,7 @@ excess_profits_sell_cda_ind_all20 = []
 excess_profits_sell_cda_ind_last10 = []
 excess_profits_sell_cda_ind_first10 = []
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     realized_surplus_buy_cda_all20.append(summary_cda_by_direction[summary_cda_by_direction['direction'] == 'buy']['realized_surplus_{}'.format(g)].mean())
     realized_surplus_buy_cda_last10.append(summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'buy') & (summary_cda_by_direction['period'] > (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].mean())
     realized_surplus_buy_cda_first10.append(summary_cda_by_direction[(summary_cda_by_direction['direction'] == 'buy') & (summary_cda_by_direction['period'] <= (num_periods - prac_periods) // 2)]['realized_surplus_{}'.format(g)].mean())
@@ -627,5 +627,5 @@ plt.title('CDF of the Excess Profits (CDA)')
 plt.xlabel('Excess Profits')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig('groups_cda_excess_profits_cdf.png')
+plt.savefig('cda_excess_profits_cdf.png')
 plt.close()

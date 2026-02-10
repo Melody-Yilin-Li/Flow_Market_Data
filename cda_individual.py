@@ -19,7 +19,7 @@ list_individual_cda = []
 
 executed_percent_buy_cda_first10, executed_percent_sell_cda_first10, executed_percent_buy_cda_last10, executed_percent_sell_cda_last10 = [], [], [], []
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     name = 'group' + str(g)
     group_mkt = []
     for r in range(1, num_periods - prac_periods + 1): 

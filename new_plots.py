@@ -34,7 +34,7 @@ plt.xlabel('Time')
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
 plt.title('CDA Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_mean_prices.png'))
+plt.savefig(os.path.join(figures_dir, 'mean_prices.png'))
 plt.close()
 
 
@@ -58,7 +58,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_mean_quantity.png'))
+plt.savefig(os.path.join(figures_dir, 'mean_quantity.png')) # figure 5a
 plt.close()
 
 
@@ -82,5 +82,5 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_mean_surplus.png'))
+plt.savefig(os.path.join(figures_dir, 'mean_surplus.png')) # figure 5b
 plt.close()

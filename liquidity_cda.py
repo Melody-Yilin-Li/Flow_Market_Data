@@ -57,7 +57,7 @@ def get_best_bids_asks(orders):
     
     return best_bid_ask_spread, price_to_buy_liquidity_shares, price_to_sell_liquidity_shares
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     group_mkt = []
     for r in range(1, num_periods - prac_periods + 1): 
         path = directory + 'Flow_Market_Data/data/cda{}/{}/1_market.json'.format(g, r + prac_periods)

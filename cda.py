@@ -2,7 +2,7 @@ from common import *
 from helpers import *
 from config import *
 
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/flow production/data/'
+directory = '/Users/YilinLi/Documents/UCSC/Flow Data/FLOW_MARKET_DATA/data/'
 plt.close()
 
 
@@ -24,10 +24,10 @@ regress_cda_second = pd.DataFrame() # dataframe for regression with each second 
 volume_volatility_cda_all20 = [] # list of clearing rates for each group in all 20 periods
 volume_volatility_cda_last10 = [] # list of clearing rates for each group in last 10 periods
 volume_volatility_cda_first10 = [] # list of clearing rates for each group in first 10 periods
-transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_groups_cda + 1)]
+transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_cda + 1)]
 
 
-for g in range(1, num_groups_cda + 1):
+for g in range(1, num_cda + 1):
     name = 'group' + str(g)
     group = []
     delta_price_all20 = []
@@ -160,7 +160,7 @@ market_per_second_cda['ce_quantity'] = market_per_second_cda['block'].apply(lamb
 
 ## with scatter points
 plt.figure(figsize=(20, 5))
-for l in range(num_groups_cda): 
+for l in range(num_cda): 
     lab = '_group ' + str(l + 1)
     plt.scatter(data=market_per_second_cda[(market_per_second_cda['clearing_price'] > 0) \
                                          & (market_per_second_cda['group_id'] == l + 1)], \
@@ -191,7 +191,7 @@ plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
 plt.xlabel('Time')
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_price.png'))
+plt.savefig(os.path.join(figures_dir, 'cda_price.png')) # appendix figure 1a 
 plt.close()
 
 plt.figure(figsize=(20, 5))
@@ -220,8 +220,8 @@ plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
 plt.xlabel('Time')
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
-# plt.title('CDA Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_price_single.png'))
+plt.title('CDA Transaction Prices vs Time')
+plt.savefig(os.path.join(figures_dir, 'cda_price_single.png')) # figure 4a 
 plt.close()
 
 
@@ -233,7 +233,7 @@ pivot = grouped_rate_comparable.pivot(index='time_bin', columns='group_id', valu
 pivot['mean_clearing_quantity'] = pivot.mean(axis=1)
 
 plt.figure(figsize=(20, 5))
-for l in range(num_groups_cda):
+for l in range(num_cda):
     lab = '_group ' + str(l + 1)
     plt.step(pivot.index, pivot[l + 1], linestyle='solid', c=colors[l], label=lab)
 plt.step(pivot.index, pivot['mean_clearing_quantity'], linestyle='solid', c='green', label='Mean Quantity')
@@ -262,12 +262,12 @@ plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_l
 plt.ylabel('Clearing Quantity')
 plt.ylim(0, 500)
 # plt.title('CDA Clearing Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_rate.png'))
+plt.savefig(os.path.join(figures_dir, 'cda_rate.png')) # appendix figure 5a
 plt.close()
 
 # plot cumulative quantities in all rounds for all groups 
 plt.figure(figsize=(20, 5))
-for l in range(num_groups_cda): 
+for l in range(num_cda): 
     lab = '_group' + str(l + 1)
     plt.step(data=market_per_second_cda[(market_per_second_cda['group_id'] == l + 1)], \
              x='timestamp', y='cumulative_quantity', where='pre', c=colors[l], label=lab)
@@ -295,7 +295,7 @@ plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_l
 plt.ylabel('Shares')
 plt.ylim(0, 2000)
 # plt.title('CDA Cumulative Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_cumsum.png'))
+plt.savefig(os.path.join(figures_dir, 'cda_cumsum.png'))
 plt.close()
 
 
@@ -303,7 +303,7 @@ plt.close()
 # participant-level data 
 list_participant_cda = []
 
-for g in range(1, num_groups_cda + 1): 
+for g in range(1, num_cda + 1): 
     # dictionary for market prices and rates/quantities 
     # create a list of dataframes to be concatenated after groupby 
     data_mkt = []
@@ -367,8 +367,8 @@ for g in range(1, num_groups_cda + 1):
         df = tmp_df.groupby('id_in_subsession').aggregate({'cash': 'sum', 'fill_quantity': 'sum', 'quantity': 'sum', 'transacted_quantity': 'sum',}).reset_index()
         df['ce_profit'] = ce_profit[r - 1]
         df['ce_quantity'] = ce_quantity[r - 1] 
-        df['payoff_percent'] = period(df['cash'] / df['ce_profit'], 4)
-        df['contract_percent'] = period(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
+        df['payoff_percent'] = round(df['cash'] / df['ce_profit'], 4)
+        df['contract_percent'] = round(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
         df['period'] = r
         df['orders'] = number_of_orders
         df['id_in_subsession'] = g
@@ -389,15 +389,15 @@ for g in range(1, num_groups_cda + 1):
 # merge the list of df's
 participant_per_second_cda = pd.concat(list_participant_cda, ignore_index=True, sort=False)
 participant_per_second_cda = participant_per_second_cda.replace(0, np.nan)
-payoffs = ['payoff_percent_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-contracts = ['contract_percent_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-unit_weighted = ['unit_weighted_price_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-quantities = ['quantity_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-orders = ['orders_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-# transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-transacted_quantities = ['transacted_quantity_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-extra_traded_quantities = ['extra_traded_quantity_{}'.format(g) for g in range(1, num_groups_cda + 1)]
-order_sizes = ['order_size_{}'.format(g) for g in range(1, num_groups_cda + 1)]
+payoffs = ['payoff_percent_{}'.format(g) for g in range(1, num_cda + 1)]
+contracts = ['contract_percent_{}'.format(g) for g in range(1, num_cda + 1)]
+unit_weighted = ['unit_weighted_price_{}'.format(g) for g in range(1, num_cda + 1)]
+quantities = ['quantity_{}'.format(g) for g in range(1, num_cda + 1)]
+orders = ['orders_{}'.format(g) for g in range(1, num_cda + 1)]
+# transaction_numbers = ['transactions_{}'.format(g) for g in range(1, num_cda + 1)]
+transacted_quantities = ['transacted_quantity_{}'.format(g) for g in range(1, num_cda + 1)]
+extra_traded_quantities = ['extra_traded_quantity_{}'.format(g) for g in range(1, num_cda + 1)]
+order_sizes = ['order_size_{}'.format(g) for g in range(1, num_cda + 1)]
 
 means = participant_per_second_cda\
     .groupby('period')[['payoff_percent', 'contract_percent', 'unit_weighted_price', 'quantity']]\
@@ -412,7 +412,7 @@ participant_per_second_cda = participant_per_second_cda.replace(np.nan, 0)
 
 # realized surplus for all groups
 plt.figure(figsize=(8, 5))
-for l in range(num_groups_cda): 
+for l in range(num_cda): 
     lab = '_group' + str(l + 1)
     plt.plot(participant_per_second_cda[(participant_per_second_cda['group_id'] == l + 1)]['period'], \
             participant_per_second_cda[(participant_per_second_cda['group_id'] == l + 1)]['payoff_percent'], \
@@ -427,12 +427,12 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_surplus.png'))
+plt.savefig(os.path.join(figures_dir, 'cda_surplus.png')) # appendix figure 2b
 plt.close()
 
 # contract execution for all groups
 plt.figure(figsize=(8, 5))
-for l in range(num_groups_cda): 
+for l in range(num_cda): 
     lab = '_group' + str(l + 1)
     plt.plot(participant_per_second_cda[(participant_per_second_cda['group_id'] == l + 1)]['period'], \
             participant_per_second_cda[(participant_per_second_cda['group_id'] == l + 1)]['contract_percent'], \
@@ -447,12 +447,12 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Filled Contract vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_contract.png'))
+plt.savefig(os.path.join(figures_dir, 'cda_contract.png')) # appendix figure 4a 
 plt.close()
 
 # traded volume for all groups
 plt.figure(figsize=(8, 5))
-for l in range(num_groups_cda): 
+for l in range(num_cda): 
     lab = '_group' + str(l + 1)
     plt.plot(participant_per_second_cda[(participant_per_second_cda['group_id'] == l + 1)]['period'], \
             participant_per_second_cda[(participant_per_second_cda['group_id'] == l + 1)]['quantity'], \
@@ -468,7 +468,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
-plt.savefig(os.path.join(figures_dir, 'groups_cda_quantity.png'))
+plt.savefig(os.path.join(figures_dir, 'cda_quantity.png')) # appendix figure 2a 
 plt.close()
 
 

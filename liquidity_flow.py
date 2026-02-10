@@ -305,7 +305,7 @@ def get_trans_slopes(orders, clearingPrice): # returns flow demand slope, flow s
     return flow_demand_slope, flow60upply_slope, rem_quantity
 
 
-for g in range(1, num_groups_flow + 1):
+for g in range(1, num_flow + 1):
     name = 'group' + str(g)
     group_mkt = []
     for r in range(1, num_periods - prac_periods + 1): 
@@ -354,7 +354,7 @@ for g in range(1, num_groups_flow + 1):
             diff = calculate_vertical_diff(bids_kinks, asks_kinks)
             # ppi = integral / liquidity_shares
             result.at[ind, 'ppi'] = diff / small_rate_change
-        result['format'] = 'Flow30' if g <= num_groups_flow30 else 'Flow60'
+        result['format'] = 'Flow30' if g <= num_flow30 else 'Flow60'
         liquidity_flow_period = pd.concat([liquidity_flow_period, result])
 
 liquidity_flow_period['liquidity'] = liquidity_flow_period['supply_slope'] - liquidity_flow_period['demand_slope']

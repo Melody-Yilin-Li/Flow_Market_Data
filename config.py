@@ -18,10 +18,10 @@ small_rate_change = liquidity_shares / price_interval_size # minimum rate change
 min_order_price = 0 # minimum price per share 
 max_order_price = 20 # maximum price per share
 
-num_groups_cda = 5 # number of groups for the CDA treatment in the experiment
-num_groups_flow = 10 # number of groups for the Flow treatment in the experiment
-num_groups_flow60 = 5 # number of groups for the high Flow60 treatment in the experiment
-num_groups_flow30 = 5 # number of groups for the low Flow30 treatment in the experiment
+num_cda = 5 # number of groups for the CDA treatment in the experiment
+num_flow = 10 # number of groups for the Flow treatment in the experiment
+num_flow60 = 5 # number of groups for the high Flow60 treatment in the experiment
+num_flow30 = 5 # number of groups for the low Flow30 treatment in the experiment
 players_per_group = 8 # number of players in each group
 prac_periods = 2 # number of practice periods before the main experiment
 num_periods = 22 # total number of periods in the experiment (including practice periods)

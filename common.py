@@ -2,7 +2,8 @@
 import numpy as np 
 import pandas as pd
 from tabulate import tabulate 
-import statistics
+import statistics 
+import statsmodels.api as sm
 import matplotlib.pyplot as plt 
 from matplotlib import rc
 rc('text',usetex=True)
