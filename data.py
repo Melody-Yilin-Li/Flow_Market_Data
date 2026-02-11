@@ -1340,6 +1340,9 @@ plt.legend(loc='lower right')
 plt.savefig(os.path.join(figures_dir, 'group_gross_profits_last10_cdf.png')) # appendix figure 3
 plt.close()
 
+compress_df_cda = market_per_second_cda[(market_per_second_cda['group_id'] == 1)].copy()
+compress_df_cda['timestamp'] = compress_df_cda['timestamp'] % round_length
+compress_df_cda['timestamp'] = compress_df_cda['timestamp'].replace(0, round_length)
 compress_df_cda['mean_cumulative_quantity_percent'] = compress_df_cda['mean_cumulative_quantity'] / compress_df_cda['ce_quantity']
 summary_cda = compress_df_cda.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
 
