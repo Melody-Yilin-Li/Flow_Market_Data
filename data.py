@@ -962,26 +962,31 @@ summary_market_all20_int = [[round(num) if isinstance(num, float) else remove_pa
 summary_trader_short_int = [[round(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_trader_short]
 summary_trader_all20_int = [[round(num) if isinstance(num, float) else remove_paren(num, 0) for num in sublist] for sublist in summary_trader_all20]
 
-# output to a latex table 
+# output to a latex table
+# table 1 
 summary_trader_short_table = tabulate(summary_trader_short, headers='firstrow', tablefmt='latex')
 print('summary_trader_short_table')
 with open(os.path.join(tables_dir, 'summary_trader_short_table.tex'), 'w') as f:
     f.write(summary_trader_short_table)
 
+# table 1 with integer values
 summary_trader_short_table_int = tabulate(summary_trader_short_int, headers='firstrow', tablefmt='latex')
 print('summary_trader_short_table_int')
 with open(os.path.join(tables_dir, 'summary_trader_short_table_int.tex'), 'w') as f:
     f.write(summary_trader_short_table_int)
 
+# table 2
 summary_market_short_table = tabulate(summary_market_short, headers='firstrow', tablefmt='latex')
 print('summary_market_short_table')
 with open(os.path.join(tables_dir, 'summary_market_short_table.tex'), 'w') as f:
     f.write(summary_market_short_table)
 
+# table 2 with integer values
 summary_market_short_table_int = tabulate(summary_market_short_int, headers='firstrow', tablefmt='latex')
 print('summary_market_short_table_int')
 with open(os.path.join(tables_dir, 'summary_market_short_table_int.tex'), 'w') as f:
     f.write(summary_market_short_table_int)
+
 
 summary_trader_all20_table = tabulate(summary_trader_all20, headers='firstrow', tablefmt='latex')
 print('summary_trader_all20_table')
@@ -1226,32 +1231,25 @@ print('efficiency\n',
       )
 
 
-print('trader behavior\n', 
-    #   stargazer_trader.render_latex()
-      )
+print('table 3: trader behavior\n')
 trader_behavior_regression_table = stargazer_trader.render_latex()
 with open(os.path.join(tables_dir, 'trader_behavior_regression_table.tex'), 'w') as f:
     f.write(trader_behavior_regression_table)
-print('price\n', 
-    #   stargazer_price.render_latex()
-      )
+
+print('table 4: price\n')
 price_regression_table = stargazer_price.render_latex()
 with open(os.path.join(tables_dir, 'price_regression_table.tex'), 'w') as f:
     f.write(price_regression_table)
-print('trade volume\n', 
-    #   stargazer_volume.render_latex()
-      )
+
+print('table 5: trade volume\n')
 trade_volume_regression_table = stargazer_volume.render_latex()
 with open(os.path.join(tables_dir, 'trade_volume_regression_table.tex'), 'w') as f:
     f.write(trade_volume_regression_table)
-print('efficiency\n', 
-    #   stargazer_efficiency.render_latex()
-      )
+
+print('table 6: efficiency\n')
 efficiency_regression_table = stargazer_efficiency.render_latex()
 with open(os.path.join(tables_dir, 'efficiency_regression_table.tex'), 'w') as f:
     f.write(efficiency_regression_table)
-
-
 
 
 
@@ -1342,16 +1340,30 @@ plt.legend(loc='lower right')
 plt.savefig(os.path.join(figures_dir, 'group_gross_profits_last10_cdf.png')) # appendix figure 3
 plt.close()
 
+compress_df_cda['mean_cumulative_quantity_percent'] = compress_df_cda['mean_cumulative_quantity'] / compress_df_cda['ce_quantity']
+summary_cda = compress_df_cda.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
+
+compress_df_flow30 = market_per_second_flow[(market_per_second_flow['group_id'] == 1)].copy()
+compress_df_flow30['timestamp'] = compress_df_flow30['timestamp'] % round_length
+compress_df_flow30['timestamp'] = compress_df_flow30['timestamp'].replace(0, round_length)
+compress_df_flow30['mean_cumulative_quantity_percent'] = compress_df_flow30['mean_cumulative_quantity'] / compress_df_flow30['ce_quantity']
+summary_flow30 = compress_df_flow30.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
+
+compress_df_flow60 = market_per_second_flow[(market_per_second_flow['group_id'] == 6)].copy()
+compress_df_flow60['timestamp'] = compress_df_flow60['timestamp'] % round_length
+compress_df_flow60['timestamp'] = compress_df_flow60['timestamp'].replace(0, round_length)
+compress_df_flow60['mean_cumulative_quantity_percent'] = compress_df_flow60['mean_cumulative_quantity'] / compress_df_flow60['ce_quantity']
+summary_flow60 = compress_df_flow60.groupby('timestamp').agg({'mean_cumulative_quantity_percent': 'mean'}).reset_index()
+
 plt.figure(figsize=(8, 5))
 plt.plot(summary_cda['timestamp'], summary_cda['mean_cumulative_quantity_percent'], linestyle='solid', c='green', label='CDA')
-plt.plot(summary_flow_r['timestamp'], summary_flow_r['mean_cumulative_quantity_percent'], c='green', linestyle='dashed', label='Flow30')
-plt.plot(summary_flow_s['timestamp'], summary_flow_s['mean_cumulative_quantity_percent'], c='green', linestyle='dotted', label='Flow60')
+plt.plot(summary_flow30['timestamp'], summary_flow30['mean_cumulative_quantity_percent'], c='green', linestyle='dashed', label='Flow30')
+plt.plot(summary_flow60['timestamp'], summary_flow60['mean_cumulative_quantity_percent'], c='green', linestyle='dotted', label='Flow60')
 plt.hlines(y=1, xmin=1, xmax=round_length, colors='plum', linestyles='--')
 plt.xticks(np.arange(1, round_length + 2, 10), np.arange(0, round_length + 1, 10))
 plt.xlabel('Time')
 plt.ylabel('Percent')
 plt.ylim(0, 1.1)
 plt.legend(loc='lower right')
-# plt.title('Flow60 Cumulative / CE Quantity vs Time')
 plt.savefig(os.path.join(figures_dir, 'cumsum_compress_all.png')) # figure 8
 plt.close()
