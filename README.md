@@ -89,32 +89,3 @@ Contains snapshots of each participant's state for every second.
 | `cash` | Float | Current cash balance. |
 | `inventory` | Float | Current share inventory (positive or negative). |
 | `rate` | Float | Current trading rate of the participant. |
-
-### Experimental Configuration
-
-(Derived from `config.py`)
-
-- **Players per group**: 8
-- **Total Periods**: 22
-  - Practice Periods: 2 (Periods 1-2)
-  - Main Experiment Periods: 20 (Periods 3-22)
-- **Round Length**: 120 seconds
-- **Contract Blocks**: 5 blocks, repeating parameters.
-
-#### Parameters per Block
-| Block | CE Price | CE Quantity | CE Profit | Buyer Profit | Seller Profit |
-|-------|----------|-------------|-----------|--------------|---------------|
-| 1     | 14       | 1100        | 11700     | 2400         | 9300          |
-| 2     | 6        | 1200        | 10700     | 8800         | 1900          |
-| 3     | 9        | 1500        | 13200     | 6900         | 6300          |
-| 4     | 6        | 1200        | 10700     | 8800         | 1900          |
-| 5     | 14       | 1100        | 11700     | 2400         | 9300          |
-
-### Generated Files
-
-Analysis scripts (e.g., `flow.py`, `cda.py`) read the JSON files and generate aggregated CSV files:
-- `data_interval.csv`
-- `data_period.csv`
-- `data_second.csv`
-- `data_profits.csv`
-- `data_liquidity.csv`
