@@ -1,8 +1,36 @@
-# Data Folder Metadata
+# Flow Market Data Analysis Package
+
+This package allows for the generation of tables and plots from experimental market data.
+
+## Usage Instructions
+
+To generate all tables and plots, simply run the `data.py` script from the root directory:
+
+```bash
+python data.py
+```
+
+This script will:
+1. Process the raw data.
+2. Generate statistical tables in the `tables/` directory. (Note: Not all tables are stored directly in the `tables` folder, some are collected from output in the command line interface.)
+3. Generate plots in the `figures/` directory.
+
+## Robustness Checks
+
+To replicate data for robustness checks (varying the price interval size):
+
+1. Open `config.py`.
+2. Locate the `price_interval_size` variable.
+3. Change its value to either `2` (for 2-second intervals) or `10` (for 10-second intervals).
+4. Run `python data.py` again to regenerate the outputs.
+
+---
+
+## Data Description
 
 This folder contains experimental data for Continuous Double Auction (CDA) and Flow markets.
 
-## Organization
+### Organization
 
 The data is organized by treatment type and group number:
 
@@ -16,7 +44,7 @@ The data is organized by treatment type and group number:
   - **Flow60 (High Rate)**: `flow6` through `flow10`
     - Max order rate: 60 shares/sec
 
-## Directory Structure
+### Directory Structure
 
 Each participant group folder (e.g., `flow1`, `cda1`) contains subfolders for each period (1-22).
 
@@ -32,9 +60,9 @@ data/
 │   │   └── 1_participant.json
 ```
 
-## JSON File Field Descriptions
+### JSON File Field Descriptions
 
-### Market Data (`1_market.json`)
+#### Market Data (`1_market.json`)
 Contains snapshots of the market state for every second of the period.
 
 | Field | Type | Description |
@@ -45,7 +73,7 @@ Contains snapshots of the market state for every second of the period.
 | `clearing_price` | Float/Null | The market clearing price. `null` if no clearing occurred. |
 | `clearing_rate` | Float/Null | The volume (CDA) or rate (Flow) of clearing. |
 
-### Participant Data (`1_participant.json`)
+#### Participant Data (`1_participant.json`)
 Contains snapshots of each participant's state for every second.
 
 | Field | Type | Description |
@@ -62,7 +90,7 @@ Contains snapshots of each participant's state for every second.
 | `inventory` | Float | Current share inventory (positive or negative). |
 | `rate` | Float | (Flow Only) Current trading rate set by the participant. |
 
-## Experimental Configuration
+### Experimental Configuration
 
 (Derived from `config.py`)
 
@@ -73,7 +101,7 @@ Contains snapshots of each participant's state for every second.
 - **Round Length**: 120 seconds
 - **Contract Blocks**: 5 blocks, repeating parameters.
 
-### Parameters per Block
+#### Parameters per Block
 | Block | CE Price | CE Quantity | CE Profit | Buyer Profit | Seller Profit |
 |-------|----------|-------------|-----------|--------------|---------------|
 | 1     | 14       | 1100        | 11700     | 2400         | 9300          |
@@ -82,7 +110,7 @@ Contains snapshots of each participant's state for every second.
 | 4     | 6        | 1200        | 10700     | 8800         | 1900          |
 | 5     | 14       | 1100        | 11700     | 2400         | 9300          |
 
-## Generated Files
+### Generated Files
 
 Analysis scripts (e.g., `flow.py`, `cda.py`) read the JSON files and generate aggregated CSV files:
 - `data_interval.csv`
