@@ -88,7 +88,7 @@ Contains snapshots of each participant's state for every second.
 | `executed_contracts` | Array | List of contracts executed by the participant. |
 | `cash` | Float | Current cash balance. |
 | `inventory` | Float | Current share inventory (positive or negative). |
-| `rate` | Float | (Flow Only) Current trading rate set by the participant. |
+| `rate` | Float | Current trading rate of the participant. |
 
 ### Experimental Configuration
 
